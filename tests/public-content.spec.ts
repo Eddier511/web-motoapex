@@ -4,6 +4,7 @@ import { testContact } from './public-fixtures'
 const brand = { id: '101', name: 'Marca pública', slug: 'marca-publica', primaryColor: '#cc0000' }
 const related = (id: string, showPrice = true, allowQuote = true) => ({ id: `rel-${id}`, motorcycleId: id, currency: 'USD', originalPrice: 10000, promoPrice: 9000, motorcycle: { id, slug: `modelo-${id}`, model: `Modelo ${id}`, version: 'S', year: 2026, showPrice, allowQuote, brand } })
 const promotion = { id: '601', slug: 'oferta-publica', title: 'Oferta pública', description: 'Varios modelos, precios individuales.', imageUrl: 'https://images.example.test/promotion.png', brand, motorcycles: [related('301'), related('302', false, false), { ...related('303', true, false), currency: 'CRC', originalPrice: 2000000, promoPrice: 1800000 }], startsAt: '2026-10-01T00:00:00Z', endsAt: '2026-12-01T00:00:00Z', status: 'active', featured: true, showOnHome: true, order: 1, buttonLabel: 'Ver catálogo', buttonHref: '/motocicletas' }
+const promotionBikes = promotion.motorcycles.map(rel => ({ id: rel.motorcycleId, slug: rel.motorcycle.slug, brandId: brand.id, brandName: brand.name, brandColor: brand.primaryColor, categoryId: '201', categoryName: 'Urbanas', model: rel.motorcycle.model, year: 2026, currency: rel.currency, price: 12000, showPrice: rel.motorcycle.showPrice, allowQuote: rel.motorcycle.allowQuote, availability: 'available', description: 'Moto publicada', specs: [{ group: 'Motor', label: 'Potencia', value: '44 HP' }], colorOptions: ['Rojo', 'Azul'].map((name, i) => ({ id: `${rel.id}-${i}`, name, hex: i ? '#0000ff' : '#ff0000', images: [{ id: `${rel.id}-img-${i}`, url: `https://images.example.test/${rel.motorcycleId}-${i}.png`, alt: `${name} ${rel.motorcycle.model}` }] })) }))
 const pageDocument = { id: '701', slug: 'acerca', title: 'Acerca de la tienda', contentFormat: 'blocks', content: [{ type: 'heading', text: 'Nuestra historia', level: 2 }, { type: 'paragraph', text: '<script>texto plano</script>' }, { type: 'image', url: 'https://images.example.test/page.png', alt: 'Imagen pública' }, { type: 'link', text: 'Ir al catálogo', href: '/motocicletas' }], status: 'published', order: 1, seo: { title: 'Acerca SEO', description: 'Descripción pública SEO' } }
 const banner = { id: '801', title: 'Banner público', subtitle: 'Texto del servidor', imageUrl: 'https://images.example.test/desktop.png', mobileImageUrl: 'https://images.example.test/mobile.png', alt: 'Moto en carretera', brandSlug: brand.slug, accentColor: '#cc0000', ctaPrimary: { label: 'Ver ofertas', href: '/promociones' }, ctaSecondary: null, status: 'active' }
 const contact = { ...testContact, phone: '+506 2222-1234', whatsapp: '+506 8888-1234', email: 'public@example.test', address: 'Dirección pública', latitude: 9.99, longitude: -84.1, hours: [{ day: 1, closed: false, opens: '08:00', closes: '17:00' }, { day: 7, closed: true, opens: null, closes: null }] }
@@ -11,7 +12,7 @@ const settings = [{ id: '1', key: 'site_url', value: 'https://motoapexcr.com', p
 async function contentRoutes(page: Page, overrides: Record<string, unknown> = {}) {
   let leads = 0
   const requests: string[] = []
-  const data: Record<string, unknown> = { brands: [], categories: [], motorcycles: [], promotions: [promotion, { ...promotion, id: '602', slug: 'solo-catalogo', title: 'Solo en promociones', showOnHome: false, featured: false, motorcycles: [] }], 'promotions/oferta-publica': promotion, 'banners?placement=home_hero': [banner], pages: [pageDocument], 'pages/acerca': pageDocument, contact, 'social-links': [{ id: '901', platform: 'instagram', label: 'Instagram público', url: 'https://www.instagram.com/public-test', status: 'active', order: 1 }, { id: '902', platform: 'youtube', label: 'YouTube público', url: 'https://www.youtube.com/@public-test', status: 'active', order: 2 }], settings, ...overrides }
+  const data: Record<string, unknown> = { brands: [], categories: [], motorcycles: promotionBikes, promotions: [promotion, { ...promotion, id: '602', slug: 'solo-catalogo', title: 'Solo en promociones', showOnHome: false, featured: false, motorcycles: [] }], 'promotions/oferta-publica': promotion, 'banners?placement=home_hero': [banner], pages: [pageDocument], 'pages/acerca': pageDocument, contact, 'social-links': [{ id: '901', platform: 'instagram', label: 'Instagram público', url: 'https://www.instagram.com/public-test', status: 'active', order: 1 }, { id: '902', platform: 'youtube', label: 'YouTube público', url: 'https://www.youtube.com/@public-test', status: 'active', order: 2 }], settings, ...overrides }
   await page.route('https://**/*', async route => {
     const url = new URL(route.request().url())
     if (url.pathname.includes('/v1/public/')) {
@@ -40,12 +41,12 @@ test('real shape banners, per-bike promotion prices, hidden values and quote per
   await expect(hidden).not.toContainText('9,000')
   await expect(hidden).not.toContainText('10,000')
   await expect(hidden.getByRole('link', { name: 'Consultar', exact: true })).toHaveCount(0)
-  await expect(card.locator('[data-motorcycle-id="301"]').getByRole('link', { name: 'Consultar', exact: true })).toHaveAttribute('href', /motorcycleId=301/)
+  await expect(card.getByRole('button', { name: 'Ver catálogo', exact: true })).toBeVisible()
   await page.getByRole('link', { name: 'Ver ofertas', exact: true }).click()
   await expect(page.getByText('Solo en promociones', { exact: true })).toBeVisible()
   await page.locator('[data-promotion-id="601"]').getByRole('link', { name: 'Ver detalle', exact: true }).click()
   await expect(page).toHaveURL(/promociones\/oferta-publica$/)
-  await expect(page.locator('main')).toContainText('Vigencia:')
+  await expect(page.locator('main')).toContainText('Hasta el 30/11/2026')
   await page.screenshot({ path: 'test-results/public-promotion.png', fullPage: true })
 })
 
@@ -155,4 +156,91 @@ test('plain text page and general promotion without bikes do not invent prices',
   await page.goto('/promociones/oferta-publica')
   await expect(page.locator('main')).not.toContainText('USD')
   await expect(page.locator('[data-motorcycle-id]')).toHaveCount(0)
+})
+for (const width of [1280, 390]) {
+  test(`promotion popup and normal catalog prices at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 })
+    const network = await contentRoutes(page)
+    await page.goto('/promociones')
+    const card = page.locator('[data-promotion-id="601"]')
+    await expect(card.locator('img')).toHaveAttribute('src', /301-0.png/)
+    await card.getByRole('button', { name: 'Ver catálogo', exact: true }).click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toContainText('$9,000 USD')
+    await expect(dialog).toContainText('Hasta el 30/11/2026')
+    await expect(dialog.locator('[data-promotion-prices] .line-through')).toContainText('10,000')
+    await expect(dialog.locator('[data-promotion-prices] p').last()).toHaveCSS('color', 'rgb(239, 68, 68)')
+    await dialog.getByRole('button', { name: 'Color Azul', exact: true }).click()
+    await expect(dialog.locator('img').first()).toHaveAttribute('src', /301-1.png/)
+    await expect(dialog).toContainText('Potencia')
+    await expect(dialog.getByLabel('Nombre', { exact: true })).toBeAttached()
+    await page.screenshot({ path: `test-results/promotion-popup-${width}.png` })
+    await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click()
+    await expect(dialog).toHaveCount(0)
+    await card.getByLabel('Motocicleta de la promoción').selectOption('303')
+    await expect(card.locator('img')).toHaveAttribute('src', /303-0.png/)
+    await card.getByRole('button', { name: 'Ver catálogo', exact: true }).click()
+    await expect(dialog).toContainText('₡1,800,000 CRC')
+    await expect(dialog.getByLabel('Tipo de consulta').locator('option[value="quote"]')).toHaveCount(0)
+    await page.keyboard.press('Escape')
+    await card.getByLabel('Motocicleta de la promoción').selectOption('302')
+    await card.getByRole('button', { name: 'Ver catálogo', exact: true }).click()
+    await expect(dialog.locator('[data-promotion-prices]')).toHaveCount(0)
+    await expect(dialog).toContainText('Precio no publicado')
+    await page.keyboard.press('Escape')
+    await page.goto('/motocicletas?model=modelo-301')
+    await expect(dialog).toBeVisible()
+    await expect(dialog).not.toContainText('$9,000')
+    await expect(dialog).toContainText('12')
+    expect(network.leads()).toBe(0)
+  })
+  test(`Usados uses external navigation at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 })
+    const network = await contentRoutes(page)
+    await page.route('https://motoapex.odoo.com/usados', route => route.fulfill({ contentType: 'text/html', body: '<h1>Usados externo</h1>' }))
+    await page.goto('/')
+    if (width < 1024) await page.getByRole('button', { name: 'Abrir menú' }).click()
+    const link = page.getByRole('link', { name: 'Usados', exact: true }).filter({ visible: true })
+    await expect(link).toHaveAttribute('href', 'https://motoapex.odoo.com/usados')
+    await link.click()
+    await expect(page).toHaveURL('https://motoapex.odoo.com/usados')
+    await expect(page.getByRole('heading', { name: 'Usados externo' })).toBeVisible()
+    expect(network.requests).not.toContain('pages/usados')
+  })
+}
+test('expired and unpublished bikes have no offer or popup', async ({ page }) => {
+  await contentRoutes(page, { promotions: [{ ...promotion, endsAt: '2020-01-01T00:00:00Z' }, { ...promotion, id: 'missing', motorcycles: [related('999')] }] })
+  await page.goto('/promociones')
+  await expect(page.locator('[data-promotion-id="601"]')).toHaveCount(0)
+  const missing = page.locator('[data-promotion-id="missing"]')
+  await expect(missing).toContainText('no están disponibles')
+  await expect(missing.getByRole('button', { name: 'Ver catálogo' })).toHaveCount(0)
+  await expect(missing.locator('[data-promotion-prices]')).toHaveCount(0)
+})
+test('promotion expiration while open clears offer and closes popup', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-10-05T12:00:00Z') })
+  await contentRoutes(page, { promotions: [{ ...promotion, endsAt: '2026-10-05T12:01:00Z' }] })
+  await page.goto('/promociones')
+  await page.getByRole('button', { name: 'Ver catálogo', exact: true }).click()
+  await expect(page.getByRole('dialog')).toContainText('$9,000 USD')
+  await page.clock.fastForward(61000)
+  await expect(page.locator('[data-promotion-id]')).toHaveCount(0)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('body')).not.toHaveClass(/modal-open/)
+})
+test('fixed homepage sections and omitted promotional prices', async ({ page }) => {
+  const rel = { ...related('301'), originalPrice: undefined, promoPrice: undefined }
+  await contentRoutes(page, { promotions: [{ ...promotion, motorcycles: [rel] }] })
+  await page.goto('/')
+  await expect(page.locator('main')).toContainText('2000+')
+  await expect(page.locator('main')).toContainText('15+')
+  await expect(page.getByRole('heading', { name: 'Taller especializado', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Distribuidores oficiales', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Financiamiento', exact: true })).toBeVisible()
+  const card = page.locator('[data-promotion-id="601"]')
+  await expect(card).not.toContainText('$')
+  await card.getByRole('button', { name: 'Ver catálogo', exact: true }).click()
+  await expect(page.getByRole('dialog')).toContainText('Precio no publicado')
+  await expect(page.getByRole('dialog')).not.toContainText('12.000')
 })

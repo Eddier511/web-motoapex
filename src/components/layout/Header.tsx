@@ -6,7 +6,7 @@ import { PublicLogo } from '../PublicSite'
 const NAV_LINKS = [
   { label: 'Motocicletas', href: '/motocicletas', hasMega: true },
   { label: 'Promociones', href: '/promociones', hasMega: false },
-  { label: 'Usados', href: '/usados', hasMega: false },
+  { label: 'Usados', href: 'https://motoapex.odoo.com/usados', hasMega: false },
   { label: 'Contacto', href: '#contacto', hasMega: false },
 ]
 
@@ -173,9 +173,11 @@ function MobileMenu({
           {[
             { label: 'Catálogo completo', href: '/motocicletas' },
             { label: 'Promociones', href: '/promociones' },
-            { label: 'Usados', href: '/usados' },
+            { label: 'Usados', href: 'https://motoapex.odoo.com/usados' },
             { label: 'Contacto', href: '#contacto' },
-          ].map((link) => (
+          ].map((link) => link.label === 'Usados' ? (
+            <a key={link.href} href={link.href} onClick={onClose} className="font-display block text-sm font-bold tracking-widest uppercase text-[#555] py-3 border-b border-[#f5f5f5] hover:text-[#111] transition-colors">{link.label}</a>
+          ) : (
             <Link
               key={link.href}
               to={link.href}
@@ -299,7 +301,9 @@ export default function Header() {
               </svg>
             </button>
 
-            {NAV_LINKS.filter((l) => !l.hasMega).map((link) => (
+            {NAV_LINKS.filter((l) => !l.hasMega).map((link) => link.label === 'Usados' ? (
+              <a key={link.href} href={link.href} className="font-display text-xs font-bold tracking-widest uppercase px-3 py-2 text-[#999] hover:text-[#111] transition-colors">{link.label}</a>
+            ) : (
               <Link
                 key={link.href}
                 to={link.href}

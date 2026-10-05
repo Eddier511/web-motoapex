@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Motorcycle } from '../../types'
 import { visiblePrice, formatPrice } from '../../api/catalog'
+import PromotionPrices, { type PromotionContext, promotionDate, usePromotionActive } from '../PromotionPrices'
 import Gallery from './Gallery'
 import ColorSelector from './ColorSelector'
 import SpecsSection from './SpecsSection'
@@ -10,12 +11,14 @@ import { whatsappHref } from '../../api/content'
 
 interface MotorcycleModalProps {
   motorcycle: Motorcycle
+  promotionContext?: PromotionContext
   onClose: () => void
 }
 
 
 
-export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModalProps) {
+export default function MotorcycleModal({ motorcycle, promotionContext, onClose }: MotorcycleModalProps) {
+  const promotionActive = usePromotionActive(promotionContext?.promotion ?? { startsAt: '1970-01-01T00:00:00Z', endsAt: '9999-01-01T00:00:00Z' })
   const contact = useContact()
   const { brandColor, colorOptions, specs } = motorcycle
   const [activeColorId, setActiveColorId] = useState(colorOptions[0]?.id ?? '')
@@ -141,7 +144,15 @@ export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModal
 
               {/* Price & availability */}
               <div className="flex items-center justify-between flex-wrap gap-3">
-                {visiblePrice(motorcycle) !== undefined ? (
+                {promotionContext ? (
+                  <div>
+                    {promotionActive ? <>
+                      <PromotionPrices relation={promotionContext.relation} showPrice={motorcycle.showPrice} />
+                      {(!motorcycle.showPrice || !promotionContext.relation.motorcycle.showPrice || (promotionContext.relation.originalPrice === undefined && promotionContext.relation.promoPrice === undefined)) && <p className="font-display text-xl text-[#888]">Precio no publicado</p>}
+                      <p className="mt-2 text-sm text-[#666]">Hasta el {promotionDate(promotionContext.promotion.endsAt)}</p>
+                    </> : <p role="status">Esta promoción ya no está vigente.</p>}
+                  </div>
+                ) : visiblePrice(motorcycle) !== undefined ? (
                   <div>
                     {motorcycle.showPrice && motorcycle.promoPrice !== undefined && motorcycle.price !== undefined && <p className="text-sm text-[#888] line-through">{formatPrice(motorcycle.price, motorcycle.currency)}</p>}
                     <p className="font-display text-3xl sm:text-4xl font-black text-[#111] leading-none">
