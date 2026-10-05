@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { Motorcycle } from '../../types'
 import { visiblePrice, formatPrice } from '../../api/catalog'
 import PromotionPrices, { type PromotionContext, promotionDate, usePromotionActive } from '../PromotionPrices'
+import useOffers from '../../data/useOffers'
 import Gallery from './Gallery'
 import ColorSelector from './ColorSelector'
 import SpecsSection from './SpecsSection'
@@ -17,7 +18,10 @@ interface MotorcycleModalProps {
 
 
 
-export default function MotorcycleModal({ motorcycle, promotionContext, onClose }: MotorcycleModalProps) {
+export default function MotorcycleModal({ motorcycle, promotionContext: explicitPromotion, onClose }: MotorcycleModalProps) {
+  const { byId } = useOffers()
+  const promotionContext = explicitPromotion ?? byId.get(motorcycle.id)
+  const quoteAllowed = motorcycle.allowQuote && (!promotionContext || promotionContext.relation.motorcycle.allowQuote)
   const promotionActive = usePromotionActive(promotionContext?.promotion ?? { startsAt: '1970-01-01T00:00:00Z', endsAt: '9999-01-01T00:00:00Z' })
   const contact = useContact()
   const { brandColor, colorOptions, specs } = motorcycle
@@ -207,11 +211,11 @@ export default function MotorcycleModal({ motorcycle, promotionContext, onClose 
                 <SpecsSection specs={specs} brandColor={brandColor} />
               )}
 
-              <LeadForm key={motorcycle.id} motorcycle={motorcycle} />
+              <LeadForm key={motorcycle.id} motorcycle={{ ...motorcycle, allowQuote: quoteAllowed }} />
 
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2 pb-2">
-                {motorcycle.allowQuote && contact.data?.whatsapp && <a
+                {quoteAllowed && contact.data?.whatsapp && <a
                   href={whatsappHref(contact.data.whatsapp, `Hola, me interesa la ${motorcycle.brandName} ${motorcycle.model} ${motorcycle.year}`)}
                   target="_blank"
                   rel="noopener noreferrer"

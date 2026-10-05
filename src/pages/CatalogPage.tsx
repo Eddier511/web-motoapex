@@ -2,7 +2,9 @@ import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router'
 import { useCatalog } from '../data/CatalogContext'
 import CatalogStatus from '../components/CatalogStatus'
+import ResourceStatus from '../components/ResourceStatus'
 import { comparePrice } from '../api/catalog'
+import useOffers from '../data/useOffers'
 import MotorcycleCard from '../components/motorcycle/MotorcycleCard'
 import MotorcycleModal from '../components/motorcycle/MotorcycleModal'
 import type { Motorcycle } from '../types'
@@ -13,6 +15,8 @@ const CURRENT_YEAR = new Date().getFullYear()
 
 export default function CatalogPage() {
   const { motorcycles: MOTORCYCLES, brands: BRANDS, categories: serverCategories, loading, error } = useCatalog()
+  const { byId, resource: promotions } = useOffers()
+  const offerPrice = (m: Motorcycle): Motorcycle => { const o = byId.get(m.id); return o ? { ...m, showPrice: m.showPrice && o.relation.motorcycle.showPrice, price: o.relation.promoPrice ?? o.relation.originalPrice, promoPrice: undefined } : m }
   const [selected, setSelected] = useState<Motorcycle | null>(null)
   const [searchParams] = useSearchParams()
   useEffect(() => { const slug = searchParams.get('model'); if (!loading && !error && slug) setSelected(MOTORCYCLES.find(m => m.slug === slug) || null) }, [searchParams, MOTORCYCLES, loading, error])
@@ -46,18 +50,19 @@ export default function CatalogPage() {
     }
     list.sort((a: Motorcycle, b: Motorcycle) => {
       switch (sort) {
-        case 'price-asc': return comparePrice(a, b)
-        case 'price-desc': return comparePrice(a, b, true)
+        case 'price-asc': return comparePrice(offerPrice(a), offerPrice(b))
+        case 'price-desc': return comparePrice(offerPrice(a), offerPrice(b), true)
         case 'year-desc': return b.year - a.year
         case 'model-asc': return a.model.localeCompare(b.model)
         default: return 0
       }
     })
     return list
-  }, [MOTORCYCLES, filterBrand, filterCategory, filterYear, search, sort, filterNew])
+  }, [MOTORCYCLES, filterBrand, filterCategory, filterYear, search, sort, filterNew, byId])
 
   return (
     <main className="pt-16 min-h-screen bg-[#f7f7f5]">
+      {promotions.error && <ResourceStatus resource={promotions} label="promociones" />}
       {/* Page header */}
       <div className="bg-white border-b border-[#e8e8e8]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14">

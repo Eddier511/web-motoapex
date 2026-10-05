@@ -5,6 +5,7 @@ import { parseBanners, parsePromotions } from '../api/content'
 import CatalogStatus from '../components/CatalogStatus'
 import ResourceStatus from '../components/ResourceStatus'
 import PromotionCard from '../components/PromotionCard'
+import useOffers from '../data/useOffers'
 import HeroSection from '../components/home/HeroSection'
 import BrandsSection from '../components/home/BrandsSection'
 import FeaturedSection from '../components/home/FeaturedSection'
@@ -14,7 +15,8 @@ export default function HomePage() {
   const { brands, motorcycles, loading, error } = useCatalog()
   const banners = usePublicResource('banners?placement=home_hero', parseBanners)
   const promotions = usePublicResource('promotions', parsePromotions)
-  const homePromotions = promotions.data?.filter(p => p.showOnHome) || []
+  const { offers } = useOffers()
+  const homePromotions = offers.filter(o => o.promotion.showOnHome).filter((o, i, all) => all.findIndex(x => x.relation.motorcycleId === o.relation.motorcycleId) === i).slice(0, 4)
   return <main>
     <Seo title="MotoApex | Motocicletas en Costa Rica" />
     <div className={banners.data?.length ? '' : 'pt-16'}>
@@ -46,7 +48,7 @@ export default function HomePage() {
           <Link to="/promociones" className="font-display text-xs font-black tracking-widest uppercase text-[#bbb] hover:text-[#111]">Ver todas →</Link>
         </div>
         <ResourceStatus resource={promotions} label="promociones" />
-        <div className="grid sm:grid-cols-2 gap-4">{homePromotions.map(p => <PromotionCard key={p.id} promotion={p} />)}</div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">{homePromotions.map(o => <PromotionCard key={`${o.promotion.id}-${o.relation.id}`} promotion={o.promotion} motorcycleId={o.relation.motorcycleId} />)}</div>
       </div>
     </section>}
     <FeaturedSection motorcycles={motorcycles.filter(m => m.isFeatured)} />

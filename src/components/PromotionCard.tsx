@@ -1,57 +1,32 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router'
-import type { Promotion } from '../types'
+import type { Motorcycle, Promotion } from '../types'
 import { useCatalog } from '../data/CatalogContext'
 import MotorcycleModal from './motorcycle/MotorcycleModal'
-import CatalogStatus from './CatalogStatus'
-import PromotionPrices, { promotionDate, usePromotionActive } from './PromotionPrices'
+import MotorcycleCard from './motorcycle/MotorcycleCard'
+import { type PromotionContext, promotionDate, usePromotionActive } from './PromotionPrices'
 
-export default function PromotionCard({ promotion: p, detail = false }: { promotion: Promotion; detail?: boolean }) {
+export default function PromotionCard({ promotion: p, detail = false, motorcycleId }: { promotion: Promotion; detail?: boolean; motorcycleId?: string }) {
   const catalog = useCatalog()
   const active = usePromotionActive(p)
-  const relations = p.motorcycles.filter(rel => catalog.motorcycles.some(m => m.id === rel.motorcycleId && m.currency === rel.currency))
-  const [selectedId, setSelectedId] = useState('')
-  const [openedId, setOpenedId] = useState('')
-  const selected = relations.find(rel => rel.motorcycleId === selectedId) ?? relations[0]
-  const selectedMoto = catalog.motorcycles.find(m => m.id === selected?.motorcycleId)
-  const opened = relations.find(rel => rel.motorcycleId === openedId)
-  const openedMoto = catalog.motorcycles.find(m => m.id === opened?.motorcycleId)
-  const image = selectedMoto?.colorOptions.flatMap(c => c.images)[0]
+  const [opened, setOpened] = useState<{ motorcycle: Motorcycle; context: PromotionContext } | null>(null)
+  const relations = p.motorcycles.filter(rel => (!motorcycleId || rel.motorcycleId === motorcycleId) && catalog.motorcycles.some(m => m.id === rel.motorcycleId && m.currency === rel.currency))
   if (!active) return null
   return <>
-    <article data-promotion-id={p.id} className="group relative bg-[#0d0d0d] flex overflow-hidden text-white">
-      <div className="w-1 flex-shrink-0" style={{ background: p.brand?.primaryColor || '#444' }} />
-      <div className="relative w-28 sm:w-36 flex-shrink-0 overflow-hidden">
-        {image ? <img src={image.url} alt={image.alt || selectedMoto?.model} loading="lazy" className="w-full h-full object-contain" style={{ minHeight: '120px' }} /> : !p.motorcycles.length ? <img src={p.imageUrl} alt={p.title} loading="lazy" className="w-full h-full object-cover opacity-70" /> : null}
-      </div>
-      <div className="flex-1 min-w-0 px-5 py-5">
-        {p.brand && <Link to={`/${p.brand.slug}`} className="font-display text-xs font-black tracking-widest uppercase" style={{ color: p.brand.primaryColor }}>{p.brand.name}</Link>}
-        {p.featured && <p className="text-xs text-white/50">Destacada</p>}
-        <h3 className="font-display text-base font-black uppercase mb-2">{p.title}</h3>
-        <p className={`text-white/50 text-xs leading-relaxed whitespace-pre-line ${detail ? '' : 'line-clamp-2'}`}>{p.description}</p>
-        {catalog.loading && <p role="status">Cargando motocicletas…</p>}
-        {catalog.error && <CatalogStatus />}
-        {!catalog.loading && !catalog.error && !!p.motorcycles.length && !relations.length && <p className="mt-4 text-xs text-white/60">Las motocicletas de esta promoción no están disponibles.</p>}
-        {relations.length > 1 && <label className="block mt-4 text-xs">Elige una motocicleta
-          <select aria-label="Motocicleta de la promoción" value={selected?.motorcycleId || ''} onChange={e => setSelectedId(e.target.value)} className="block mt-2 w-full bg-[#222] border border-white/30 p-2 text-white">
-            {relations.map(rel => <option key={rel.id} value={rel.motorcycleId}>{rel.motorcycle.model} {rel.motorcycle.version} · {rel.motorcycle.year}</option>)}
-          </select>
-        </label>}
-        <ul className="mt-4 space-y-3">{relations.map(rel => {
-          const moto = catalog.motorcycles.find(m => m.id === rel.motorcycleId)!
-          return <li key={rel.id} data-motorcycle-id={rel.motorcycleId}>
-            <p className="font-display font-bold text-sm">{rel.motorcycle.brand.name} · {rel.motorcycle.model} {rel.motorcycle.version} · {rel.motorcycle.year}</p>
-            <PromotionPrices relation={rel} showPrice={moto.showPrice} dark />
-          </li>
-        })}</ul>
-        <p className="mt-3 text-xs text-white/60">Hasta el {promotionDate(p.endsAt)}</p>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          {selected && p.buttonLabel && <button onClick={() => setOpenedId(selected.motorcycleId)} className="font-display text-xs font-black tracking-widest uppercase px-4 py-2" style={{ background: p.brand?.primaryColor || '#333' }}>{p.buttonLabel}</button>}
-          {!detail && <Link className="text-xs underline text-white/60" to={`/promociones/${p.slug}`}>Ver detalle</Link>}
-        </div>
-      </div>
-    </article>
-    {opened && openedMoto && createPortal(<MotorcycleModal key={openedMoto.id} motorcycle={{ ...openedMoto, allowQuote: openedMoto.allowQuote && opened.motorcycle.allowQuote }} promotionContext={{ promotion: p, relation: opened }} onClose={() => setOpenedId('')} />, document.body)}
+    {relations.map(relation => {
+      const motorcycle = catalog.motorcycles.find(m => m.id === relation.motorcycleId)!
+      const context = { promotion: p, relation }
+      return <article key={relation.id} data-promotion-id={p.id} data-motorcycle-id={motorcycle.id} className="flex flex-col">
+        <MotorcycleCard motorcycle={motorcycle} promotionContext={context} promotionText={{ title: p.title, description: p.description, buttonLabel: p.buttonLabel }} onClick={m => setOpened({ motorcycle: m, context })} />
+        {!detail && <Link className="text-xs text-[#777] hover:text-[#111] underline underline-offset-4 mt-3 self-start" to={`/promociones/${p.slug}`}>Ver detalle</Link>}
+      </article>
+    })}
+    {!p.motorcycles.length && <article data-promotion-id={p.id} className="bg-white border border-[#e6e6e6] overflow-hidden">
+      <img src={p.imageUrl} alt={p.title} className="w-full aspect-[16/10] object-contain bg-[#f3f3f3]" />
+      <div className="p-6"><h3 className="font-display text-2xl font-black uppercase">{p.title}</h3><p className="text-sm text-[#888] mt-3">{p.description}</p><p className="text-xs mt-5">Hasta el {promotionDate(p.endsAt)}</p>{!detail && <Link to={`/promociones/${p.slug}`} className="inline-block mt-4 text-sm underline">Ver detalle</Link>}</div>
+    </article>}
+    {!!p.motorcycles.length && !catalog.loading && !catalog.error && !relations.length && <p data-promotion-id={p.id} className="p-6 text-sm text-[#777]">Las motocicletas de esta promoción no están disponibles.</p>}
+    {opened && createPortal(<MotorcycleModal key={opened.motorcycle.id} motorcycle={opened.motorcycle} promotionContext={opened.context} onClose={() => setOpened(null)} />, document.body)}
   </>
 }

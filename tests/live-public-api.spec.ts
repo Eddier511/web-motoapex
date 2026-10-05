@@ -28,9 +28,9 @@ test('compiled web against installed API at the authorized origin, no API interc
     if (url.origin === origin) {
       if (/^\/assets\/[a-zA-Z0-9_.-]+$/.test(url.pathname)) {
         const file = resolve('dist', url.pathname.slice(1))
-        await route.fulfill({ contentType: file.endsWith('.js') ? 'application/javascript' : 'text/css', body: readFileSync(file) })
+        await route.fulfill({ contentType: file.endsWith('.js') ? 'application/javascript' : file.endsWith('.webp') ? 'image/webp' : 'text/css', body: readFileSync(file) })
       } else await route.fulfill({ contentType: 'text/html', body: readFileSync('dist/index.html') })
-    } else if (['image', 'font', 'media'].includes(request.resourceType())) await route.abort()
+    } else if (['font', 'media'].includes(request.resourceType())) await route.abort()
     else await route.continue()
   })
   await page.goto(`${origin}/motocicletas`)
@@ -50,6 +50,32 @@ test('compiled web against installed API at the authorized origin, no API interc
   await expect(page).toHaveURL(/\/ducati$/)
   await expect(page.getByRole('button', { name: 'Todos', exact: true })).toHaveCSS('color', 'rgb(255, 255, 255)')
   await page.locator('header nav').getByRole('link', { name: 'Promociones', exact: true }).click()
-  await expect(page.getByText('No hay promociones publicadas en este momento.')).toBeVisible()
+  const published = await page.evaluate(async () => (await (await fetch('https://darksalmon-quetzal-730302.hostingersite.com/v1/public/promotions')).json()).data)
+  if (!published.length) await expect(page.getByText('No hay promociones publicadas en este momento.')).toBeVisible()
+  else {
+    const promotion = published.find((p: { motorcycles: unknown[] }) => p.motorcycles.length)
+    if (promotion) {
+      const rel = promotion.motorcycles[0]
+      const card = page.locator(`[data-promotion-id="${promotion.id}"][data-motorcycle-id="${rel.motorcycleId}"]`)
+      await expect(card).toBeVisible()
+      await expect(card.locator('img')).toHaveJSProperty('complete', true)
+      await page.screenshot({ path: 'test-results/live-promotions-desktop.png', fullPage: true })
+      await card.getByRole('button').first().click()
+      await expect(dialog).toBeVisible()
+      if (rel.motorcycle.showPrice && rel.promoPrice !== undefined) await expect(dialog.locator('[data-promotion-prices]')).toContainText(rel.promoPrice.toLocaleString('en-US'))
+      await page.keyboard.press('Escape')
+      await page.goto(`${origin}/motocicletas?model=${encodeURIComponent(rel.motorcycle.slug)}`)
+      await expect(dialog).toBeVisible()
+      if (rel.motorcycle.showPrice && rel.promoPrice !== undefined) await expect(dialog.locator('[data-promotion-prices]')).toContainText(rel.promoPrice.toLocaleString('en-US'))
+      await page.keyboard.press('Escape')
+      await page.setViewportSize({ width: 390, height: 844 })
+      await page.goto(`${origin}/promociones`)
+      await expect(card).toBeVisible()
+      await expect.poll(() => card.locator('img').evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true)
+      await expect.poll(() => page.locator('main section img').evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true)
+      await page.screenshot({ path: 'test-results/live-promotions-mobile.png', fullPage: true })
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    }
+  }
   expect(posts).toBe(0)
 })

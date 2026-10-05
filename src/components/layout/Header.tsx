@@ -176,7 +176,7 @@ function MobileMenu({
             { label: 'Usados', href: 'https://motoapex.odoo.com/usados' },
             { label: 'Contacto', href: '#contacto' },
           ].map((link) => link.label === 'Usados' ? (
-            <a key={link.href} href={link.href} onClick={onClose} className="font-display block text-sm font-bold tracking-widest uppercase text-[#555] py-3 border-b border-[#f5f5f5] hover:text-[#111] transition-colors">{link.label}</a>
+            <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" onClick={onClose} className="font-display block text-sm font-bold tracking-widest uppercase text-[#555] py-3 border-b border-[#f5f5f5] hover:text-[#111] transition-colors">{link.label}</a>
           ) : (
             <Link
               key={link.href}
@@ -302,7 +302,7 @@ export default function Header() {
             </button>
 
             {NAV_LINKS.filter((l) => !l.hasMega).map((link) => link.label === 'Usados' ? (
-              <a key={link.href} href={link.href} className="font-display text-xs font-bold tracking-widest uppercase px-3 py-2 text-[#999] hover:text-[#111] transition-colors">{link.label}</a>
+              <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="font-display text-xs font-bold tracking-widest uppercase px-3 py-2 text-[#999] hover:text-[#111] transition-colors">{link.label}</a>
             ) : (
               <Link
                 key={link.href}

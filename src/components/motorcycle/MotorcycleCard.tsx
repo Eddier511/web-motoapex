@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import type { Motorcycle } from '../../types'
 import { visiblePrice } from '../../api/catalog'
+import useOffers from '../../data/useOffers'
+import PromotionPrices, { type PromotionContext, promotionDate } from '../PromotionPrices'
 
 interface MotorcycleCardProps {
   motorcycle: Motorcycle
   onClick: (motorcycle: Motorcycle) => void
   compact?: boolean
+  promotionContext?: PromotionContext
+  promotionText?: { title: string; description: string; buttonLabel: string }
 }
 
 const availabilityLabel = {
@@ -17,7 +21,9 @@ function cardPrice(amount: number, currency: string) {
   return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2 })}`
 }
 
-export default function MotorcycleCard({ motorcycle, onClick, compact = false }: MotorcycleCardProps) {
+export default function MotorcycleCard({ motorcycle, onClick, compact = false, promotionContext, promotionText }: MotorcycleCardProps) {
+  const { byId } = useOffers()
+  const offer = promotionContext ?? byId.get(motorcycle.id)
   const { brandColor, colorOptions } = motorcycle
   const [activeColorId, setActiveColorId] = useState(colorOptions[0]?.id ?? '')
   const activeColor = colorOptions.find(color => color.id === activeColorId) ?? colorOptions[0]
@@ -36,7 +42,7 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false }:
       onClick={openModel}
       role="button"
       tabIndex={0}
-      aria-label={`Ver modelo ${motorcycle.brandName} ${motorcycle.model}`}
+      aria-label={`${promotionText?.buttonLabel || 'Ver modelo'} ${motorcycle.brandName} ${motorcycle.model}`}
       onKeyDown={event => {
         if (event.target !== event.currentTarget) return
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openModel() }
@@ -58,7 +64,7 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false }:
 
       <div className="p-5 sm:p-6 flex flex-col flex-1">
         <div className="flex items-center justify-between gap-3 mb-4">
-          <span className="font-display text-[10px] font-black tracking-[0.15em] uppercase bg-[#111] text-white px-2.5 py-1">{motorcycle.categoryName}</span>
+          <div className="flex flex-wrap items-center gap-2"><span className="font-display text-[10px] font-black tracking-[0.15em] uppercase bg-[#111] text-white px-2.5 py-1">{motorcycle.categoryName}</span>{offer && <span className="font-display text-[10px] font-black tracking-[0.15em] uppercase bg-[#facc15] text-[#111] px-2.5 py-1">Promoción</span>}</div>
           <span className="text-[11px] text-[#888]">{availabilityLabel[motorcycle.availability]}</span>
         </div>
 
@@ -68,7 +74,8 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false }:
             {!titleHasYear && <span> {motorcycle.year}</span>}
           </div>
           <p className="text-[10px] font-bold tracking-[0.15em] uppercase mb-3" style={{ color: brandColor }}>{motorcycle.brandName}</p>
-          {!compact && <p className="text-[#888] text-sm leading-relaxed line-clamp-3 min-h-[4.5em]">{motorcycle.shortDescription || motorcycle.description || motorcycle.tagline}</p>}
+          {promotionText && <p className="font-display text-base font-black uppercase text-[#111] mb-2">{promotionText.title}</p>}
+          {!compact && <p className="text-[#888] text-sm leading-relaxed line-clamp-3 min-h-[4.5em]">{promotionText?.description || motorcycle.shortDescription || motorcycle.description || motorcycle.tagline}</p>}
         </div>
 
         {colorOptions.length > 0 && (
@@ -93,11 +100,11 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false }:
         <div className="flex items-end justify-between gap-3 flex-wrap border-t border-[#ededed] mt-6 pt-5">
           <div>
             <p className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#aaa] mb-1">Precio</p>
-            {price !== undefined ? <p className="font-display text-3xl font-black text-[#111] leading-none">
+            {offer ? <><PromotionPrices relation={offer.relation} showPrice={motorcycle.showPrice} />{(!motorcycle.showPrice || !offer.relation.motorcycle.showPrice || (offer.relation.originalPrice === undefined && offer.relation.promoPrice === undefined)) && <p className="font-display text-sm text-[#888]">Precio no publicado</p>}<p className="text-xs text-[#777] mt-2">Hasta el {promotionDate(offer.promotion.endsAt)}</p></> : price !== undefined ? <p className="font-display text-3xl font-black text-[#111] leading-none">
               {cardPrice(price, motorcycle.currency)}<span className="text-[10px] text-[#aaa] font-bold ml-1.5">{motorcycle.currency}</span>
             </p> : <p className="font-display text-sm font-bold text-[#888]">Precio no publicado</p>}
           </div>
-          <span className="font-display text-xs font-black tracking-[0.15em] uppercase py-1 group-hover:underline underline-offset-4" style={{ color: brandColor }}>Ver modelo →</span>
+          <span className="font-display text-xs font-black tracking-[0.15em] uppercase py-1 break-words group-hover:underline underline-offset-4" style={{ color: brandColor }}>{promotionText?.buttonLabel || 'Ver modelo'} →</span>
         </div>
       </div>
     </div>
