@@ -73,7 +73,8 @@ test('navigation, server IDs, categories, search, year, new and sorting', async 
 })
 
 test('color galleries, primary image, reserved status, specs and escaped descriptions', async ({ page }) => {
-  await catalog(page)
+  const pdf = 'https://documents.example.test/' + 'documento-largo-'.repeat(12) + '.pdf'
+  await catalog(page, [{ ...motorcycle, specs: [...motorcycle.specs, { group: 'Motor', label: 'Ficha técnica PDF', value: pdf }, { group: 'Motor', label: 'Descripción larga', value: 'TextoSinEspacios'.repeat(30) }, { group: 'Motor', label: 'Enlace inseguro', value: 'javascript:alert(1)' }] }])
   await page.goto('/motocicletas')
   const modelCard = card(page)
   await modelCard.getByRole('button', { name: 'Ver color Azul', exact: true }).click()
@@ -88,6 +89,17 @@ test('color galleries, primary image, reserved status, specs and escaped descrip
   await expect(dialog.getByText('<b>Texto sin HTML crudo</b>', { exact: true })).toBeVisible()
   await expect(dialog.locator('b')).toHaveCount(0)
   await expect(dialog.getByText('44 HP', { exact: true })).toBeVisible()
+  const pdfLink = dialog.getByRole('link', { name: 'Ficha técnica PDF', exact: true })
+  await expect(pdfLink).toHaveAttribute('href', pdf)
+  await expect(pdfLink).toHaveAttribute('target', '_blank')
+  await expect(pdfLink).toHaveAttribute('rel', 'noopener noreferrer')
+  await expect(dialog.locator('a[href^="javascript:"]')).toHaveCount(0)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    const metrics = await dialog.getByText('TextoSinEspacios'.repeat(30), { exact: true }).evaluate(node => ({ width: node.clientWidth, scroll: node.scrollWidth, height: node.clientHeight, line: parseFloat(getComputedStyle(node).lineHeight) }))
+    expect(metrics.scroll).toBeLessThanOrEqual(metrics.width + 1)
+    expect(metrics.height).toBeGreaterThan(metrics.line)
+  }
   await expect(dialog.locator('img').first()).toHaveAttribute('src', /502/)
   await dialog.getByRole('button', { name: 'Siguiente imagen', exact: true }).click()
   await expect(dialog.locator('img').first()).toHaveAttribute('src', /501/)
