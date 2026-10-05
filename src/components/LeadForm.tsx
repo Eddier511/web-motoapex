@@ -2,9 +2,11 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ApiError, submitLead, type LeadInput } from '../api/client'
 import { useCatalog } from '../data/CatalogContext'
 import type { Motorcycle } from '../types'
+import { useSearchParams } from 'react-router'
 
 export default function LeadForm({ motorcycle, dark = false }: { motorcycle?: Motorcycle; dark?: boolean }) {
   const { motorcycles } = useCatalog()
+  const [searchParams] = useSearchParams()
   const [sending, setSending] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -14,6 +16,7 @@ export default function LeadForm({ motorcycle, dark = false }: { motorcycle?: Mo
   useEffect(() => { if (!retryAt) return; const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer) }, [retryAt])
   const waiting = Math.max(0, Math.ceil((retryAt - now) / 1000))
   const [selectedId, setSelectedId] = useState(motorcycle?.id ?? '')
+  useEffect(() => { const id = searchParams.get('motorcycleId'); if (!motorcycle && id && motorcycles.some(m => m.id === id)) { setSelectedId(id); setType('quote') } }, [searchParams, motorcycles, motorcycle])
   const selected = motorcycle ?? motorcycles.find(m => m.id === selectedId)
   const [type, setType] = useState<LeadInput['type']>(motorcycle?.allowQuote ? 'quote' : motorcycle ? 'availability' : 'contact')
   const quoteAllowed = !selected || selected.allowQuote
@@ -31,7 +34,7 @@ export default function LeadForm({ motorcycle, dark = false }: { motorcycle?: Mo
       await submitLead({ name, phone, email: String(values.get('email') || '').trim(), message: String(values.get('message') || '').trim(), type: selectedType, ...(selected ? { motorcycleId: selected.id } : {}) })
       setSuccess(true); form.reset()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo enviar la consulta.')
+      setError(e instanceof Error ? `${e.message}${e instanceof ApiError && e.requestId ? ` Referencia: ${e.requestId}` : ''}` : 'No se pudo enviar la consulta.')
       if (e instanceof ApiError && e.status === 429) setRetryAt(Date.now() + e.retryAfter * 1000)
     } finally { inFlight.current = false; setSending(false) }
   }

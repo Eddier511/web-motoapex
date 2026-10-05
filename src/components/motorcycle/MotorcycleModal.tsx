@@ -5,6 +5,8 @@ import Gallery from './Gallery'
 import ColorSelector from './ColorSelector'
 import SpecsSection from './SpecsSection'
 import LeadForm from '../LeadForm'
+import { useContact } from '../PublicSite'
+import { whatsappHref } from '../../api/content'
 
 interface MotorcycleModalProps {
   motorcycle: Motorcycle
@@ -14,6 +16,7 @@ interface MotorcycleModalProps {
 
 
 export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModalProps) {
+  const contact = useContact()
   const { brandColor, colorOptions, specs } = motorcycle
   const [activeColorId, setActiveColorId] = useState(colorOptions[0]?.id ?? '')
 
@@ -197,8 +200,8 @@ export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModal
 
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2 pb-2">
-                {motorcycle.allowQuote && <a
-                  href={`https://wa.me/50688000000?text=Hola, me interesa la ${motorcycle.brandName} ${motorcycle.model} ${motorcycle.year}`}
+                {motorcycle.allowQuote && contact.data?.whatsapp && <a
+                  href={whatsappHref(contact.data.whatsapp, `Hola, me interesa la ${motorcycle.brandName} ${motorcycle.model} ${motorcycle.year}`)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-display flex-1 text-center text-sm font-black tracking-widest uppercase py-3.5 text-white hover:opacity-85 transition-opacity"

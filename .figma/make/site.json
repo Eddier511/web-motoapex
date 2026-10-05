@@ -2,7 +2,6 @@
   "title": "MotoApex | Motocicletas en Costa Rica",
   "language": "es-CR",
   "description": "MotoApex Costa Rica: descubre nuestras motocicletas, explora modelos y colores, y consulta disponibilidad con nuestros asesores.",
-  "icons": { "icon": "/favicon-motoapex.ico" },
   "robots": {
     "index": false
   },

@@ -1,10 +1,14 @@
 import { test, expect, type Page, type Route } from '@playwright/test'
+import { emptyPublicData } from './public-fixtures'
 
 // Controlled network responses are confined to browser tests; production uses the API.
 async function controlledCatalog(page: Page) {
   const pending: Route[] = []
   await page.route('https://**/*', async route => {
-    if (new URL(route.request().url()).pathname.includes('/v1/public/')) pending.push(route)
+    const url = new URL(route.request().url())
+    const kind = url.pathname.split('/').pop()
+    if (url.pathname.includes('/v1/public/') && ['brands', 'categories', 'motorcycles'].includes(kind || '')) pending.push(route)
+    else if (url.pathname.includes('/v1/public/')) await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: emptyPublicData(kind) }) })
     else await route.abort()
   })
   const finish = (route: Route, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(status === 200 ? { data: [] } : { error: { message: 'Error de prueba' } }) })
@@ -30,8 +34,8 @@ test('one overlay for concurrent requests, initial load, cached navigation and r
   await expect(dialog).toHaveCount(0)
   await expect(page.locator('#root')).toHaveJSProperty('inert', false)
   await expect(page.locator('body')).not.toHaveCSS('position', 'fixed')
-  await page.getByRole('link', { name: 'Ver todas', exact: true }).first().click()
-  await expect(page).toHaveURL(/motocicletas$/)
+  await page.locator('header nav').getByRole('link', { name: 'Promociones', exact: true }).click()
+  await expect(page).toHaveURL(/promociones$/)
   await expect(dialog).toHaveCount(0)
   expect(pending).toHaveLength(3)
   await page.reload()
@@ -39,7 +43,7 @@ test('one overlay for concurrent requests, initial load, cached navigation and r
   await expect.poll(() => pending.length).toBe(6)
   await Promise.all(pending.slice(3).map(route => finish(route)))
   await expect(dialog).toHaveCount(0)
-  await expect(page.getByText('El catálogo está vacío.', { exact: false })).toBeVisible()
+  await expect(page.getByText('No hay promociones publicadas en este momento.', { exact: true })).toBeVisible()
 })
 
 test('failure closes immediately, retry locks background and restores scroll and focus', async ({ page }) => {

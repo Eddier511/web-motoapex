@@ -5,8 +5,11 @@ import CatalogStatus from '../components/CatalogStatus'
 import MotorcycleCard from '../components/motorcycle/MotorcycleCard'
 import MotorcycleModal from '../components/motorcycle/MotorcycleModal'
 import type { Motorcycle } from '../types'
+import { useContact } from '../components/PublicSite'
+import { whatsappHref } from '../api/content'
 
 export default function BrandPage() {
+  const contact = useContact()
   const { brands, motorcycles, loading, error } = useCatalog()
   const { brand: brandSlug } = useParams<{ brand: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -314,15 +317,15 @@ export default function BrandPage() {
             >
               Solicitar cotización
             </a>
-            <a
-              href={`https://wa.me/50688000000?text=Hola, me interesa un modelo de ${brand.name}`}
+            {contact.data?.whatsapp && <a
+              href={whatsappHref(contact.data.whatsapp, `Hola, me interesa un modelo de ${brand.name}`)}
               target="_blank"
               rel="noopener noreferrer"
               className="font-display text-sm font-black tracking-widest uppercase px-8 py-3.5 border-2 text-[#111] hover:bg-[#111] hover:text-white transition-all"
               style={{ borderColor: '#111' }}
             >
               WhatsApp
-            </a>
+            </a>}
           </div>
         </div>
       </section>
@@ -333,3 +336,4 @@ export default function BrandPage() {
     </main>
   )
 }
+

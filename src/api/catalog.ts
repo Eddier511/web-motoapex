@@ -1,4 +1,5 @@
 import type { Brand, Category, Motorcycle, ColorOption, MotorcycleImage } from '../types'
+import { safeHttps } from './content'
 
 type RecordData = Record<string, unknown>
 const record = (value: unknown): RecordData => {
@@ -11,7 +12,7 @@ const array = (value: unknown): unknown[] => { if (!Array.isArray(value)) throw 
 const number = (value: unknown): number | undefined => typeof value === 'number' && Number.isFinite(value) ? value : undefined
 const positive = (value: unknown) => { const n = number(value); return n !== undefined && n > 0 ? n : undefined }
 const color = (value: unknown, fallback: string) => /^#[\da-f]{6}$/i.test(text(value)) ? text(value) : fallback
-export const httpsImage = (value: unknown) => { try { const url = new URL(text(value)); return url.protocol === 'https:' && !url.username && !url.password ? url.href : '' } catch { return '' } }
+export const httpsImage = safeHttps
 const ordered = <T extends { order?: number }>(items: T[]) => items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
 export function parseCategories(value: unknown): Category[] {

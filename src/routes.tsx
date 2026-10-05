@@ -1,26 +1,43 @@
-import { createBrowserRouter, Outlet, useLocation } from 'react-router'
+import { createBrowserRouter, Outlet, useLocation, useParams } from 'react-router'
 import { useEffect } from 'react'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import HomePage from './pages/HomePage'
 import BrandPage from './pages/BrandPage'
 import CatalogPage from './pages/CatalogPage'
+import PromotionsPage, { PromotionDetailPage } from './pages/PromotionsPage'
+import PublicPage from './pages/PublicPage'
+import PublicSite from './components/PublicSite'
+import ResourceStatus from './components/ResourceStatus'
+import { usePublicResource } from './data/PublicDataContext'
+import { parseSettings } from './api/content'
+import { useCatalog } from './data/CatalogContext'
 
 function Root() {
   const { pathname, hash } = useLocation()
+  const settings = usePublicResource('settings', parseSettings)
   useEffect(() => {
     if (hash) document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView()
     else window.scrollTo(0, 0)
   }, [pathname, hash])
   return (
     <div className="min-h-screen flex flex-col">
+      <PublicSite />
       <Header />
       <div className="flex-1">
         <Outlet />
       </div>
       <Footer />
+      {settings.error && <ResourceStatus resource={settings} label="ajustes públicos" />}
     </div>
   )
+}
+
+function BrandOrPage() {
+  const { brand } = useParams()
+  const catalog = useCatalog()
+  if (catalog.loading || catalog.error || catalog.brands.some(b => b.slug === brand)) return <BrandPage />
+  return <PublicPage slug={brand} />
 }
 
 function NotFound() {
@@ -50,7 +67,10 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: HomePage },
       { path: 'motocicletas', Component: CatalogPage },
-      { path: ':brand', Component: BrandPage },
+      { path: 'promociones', Component: PromotionsPage },
+      { path: 'promociones/:slug', Component: PromotionDetailPage },
+      { path: 'paginas/:slug', Component: PublicPage },
+      { path: ':brand', Component: BrandOrPage },
       { path: '*', Component: NotFound },
     ],
   },

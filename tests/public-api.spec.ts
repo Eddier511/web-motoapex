@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { emptyPublicData } from './public-fixtures'
 
 // Isolated contract fixtures only. They are never imported into the application.
 const image = (id: string, order = 0, isPrimary = false) => ({ id, url: `https://images.example.test/${id}.png`, alt: id, order, isPrimary })
@@ -25,7 +26,7 @@ async function catalog(page: Page, motos: unknown[] = [motorcycle, hidden, comin
     const url = new URL(route.request().url())
     if (url.pathname.includes('/v1/public/')) {
       const kind = url.pathname.split('/').pop()
-      const data = kind === 'brands' ? [brand] : kind === 'categories' ? categories : motos
+      const data = kind === 'brands' ? [brand] : kind === 'categories' ? categories : kind === 'motorcycles' ? motos : emptyPublicData(kind)
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data }) })
     } else if (url.hostname === 'images.example.test') {
       await route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#ddd"/></svg>' })

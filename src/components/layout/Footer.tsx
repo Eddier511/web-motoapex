@@ -1,10 +1,17 @@
 import { Link } from 'react-router'
 import { useCatalog } from '../../data/CatalogContext'
 import LeadForm from '../LeadForm'
-import logoImg from '@/imports/motoapex-brand.webp'
+import { PublicLogo, useContact } from '../PublicSite'
+import ContactDetails from '../ContactDetails'
+import ResourceStatus from '../ResourceStatus'
+import { parsePages, parseSocialLinks } from '../../api/content'
+import { usePublicResource } from '../../data/PublicDataContext'
 
 export default function Footer() {
   const { brands: BRANDS } = useCatalog()
+  const contact = useContact()
+  const socials = usePublicResource('social-links', parseSocialLinks)
+  const pages = usePublicResource('pages', parsePages)
   const year = new Date().getFullYear()
 
   return (
@@ -20,22 +27,7 @@ export default function Footer() {
               Hablemos<br />
               <span className="text-white/20">de tu moto</span>
             </h2>
-            <div className="space-y-3">
-              {[
-                { l: 'Dirección', v: 'San José, Costa Rica — Zona Industrial Pavas' },
-                { l: 'Teléfono', v: '+506 2200 0000' },
-                { l: 'WhatsApp', v: '+506 8800 0000' },
-                { l: 'Email', v: 'ventas@motoapexcr.com' },
-                { l: 'Horario', v: 'Lun–Sáb 8:00 am – 6:00 pm' },
-              ].map((item) => (
-                <div key={item.l} className="flex gap-5 items-start">
-                  <p className="font-display text-xs font-black tracking-widest uppercase text-white/40 w-20 flex-shrink-0 pt-0.5">
-                    {item.l}
-                  </p>
-                  <p className="text-sm text-white/70">{item.v}</p>
-                </div>
-              ))}
-            </div>
+            <ContactDetails />
           </div>
 
           {/* Contact form */}
@@ -46,8 +38,8 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <img src={logoImg} alt="Moto Apex Costa Rica" width={256} height={256} loading="lazy" className="h-16 w-16 object-contain" />
-          <span className="text-white/30 text-xs">© {year} Moto Apex Costa Rica</span>
+          <PublicLogo className="h-16 w-16 object-contain" />
+          <span className="text-white/30 text-xs">© {year} {contact.data?.businessName}</span>
         </div>
         <div className="flex items-center gap-3 flex-wrap justify-center">
           {BRANDS.map((b) => (
@@ -60,17 +52,21 @@ export default function Footer() {
             </Link>
           ))}
           <span className="text-white/20 text-xs mx-1">|</span>
-          {['Instagram', 'Facebook', 'WhatsApp'].map((s) => (
+          {socials.data?.map((s) => (
             <a
-              key={s}
-              href="#"
+              key={s.id}
+              href={s.url}
+              target="_blank" rel="noopener noreferrer"
               className="font-display text-xs tracking-widest uppercase text-white/30 hover:text-white/60 transition-colors"
             >
-              {s}
+              {s.label}
             </a>
           ))}
+          {pages.data?.map(p => <Link key={p.id} to={`/paginas/${p.slug}`} className="font-display text-xs tracking-widest uppercase text-white/30 hover:text-white/60">{p.title}</Link>)}
         </div>
       </div>
+      <ResourceStatus resource={socials} label="redes sociales" />
+      <ResourceStatus resource={pages} label="páginas" />
     </footer>
   )
 }

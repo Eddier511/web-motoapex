@@ -27,19 +27,23 @@ export default function HeroSection({ slides }: HeroSectionProps) {
     return () => clearInterval(timer)
   }, [next, slides.length])
 
-  const slide = slides[current]
+  const slide = slides[current] ?? slides[0]
+  if (!slide) return null
 
   return (
     <section className="relative h-[62vh] min-h-[420px] max-h-[620px] overflow-hidden bg-[#111]">
       {/* Background image */}
+      <picture key={slide.id}>
+      {slide.mobileImageUrl && <source media="(max-width: 639px)" srcSet={slide.mobileImageUrl} />}
       <img
         key={slide.id}
         src={slide.imageUrl}
-        alt={slide.title}
+        alt={slide.alt}
         onLoad={() => setLoaded(true)}
         className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
         style={{ opacity: loaded ? 0.7 : 0 }}
       />
+      </picture>
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
@@ -59,7 +63,7 @@ export default function HeroSection({ slides }: HeroSectionProps) {
             className="font-display text-xs font-black tracking-[0.4em] uppercase mb-3"
             style={{ color: slide.accentColor ?? '#fff' }}
           >
-            Moto Apex — Distribuidor Oficial
+            {slide.brandSlug}
           </p>
         )}
         <h1
@@ -72,19 +76,19 @@ export default function HeroSection({ slides }: HeroSectionProps) {
           {slide.subtitle}
         </p>
         <div className="flex gap-3 flex-wrap">
-          <Link
+          {slide.ctaPrimary && <Link
             to={slide.ctaPrimary.href}
             className="font-display text-sm font-black tracking-widest uppercase px-7 py-3.5 text-white hover:opacity-85 transition-opacity"
             style={{ background: slide.accentColor ?? '#fff', color: slide.accentColor ? '#fff' : '#111' }}
           >
             {slide.ctaPrimary.label}
-          </Link>
-          <Link
+          </Link>}
+          {slide.ctaSecondary && <Link
             to={slide.ctaSecondary.href}
             className="font-display text-sm font-black tracking-widest uppercase px-7 py-3.5 border-2 border-white/50 text-white hover:border-white hover:bg-white/10 transition-all"
           >
             {slide.ctaSecondary.label}
-          </Link>
+          </Link>}
         </div>
       </div>
 

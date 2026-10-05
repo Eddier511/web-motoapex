@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router'
 import { useCatalog } from '../data/CatalogContext'
 import CatalogStatus from '../components/CatalogStatus'
 import { comparePrice } from '../api/catalog'
@@ -13,6 +14,8 @@ const CURRENT_YEAR = new Date().getFullYear()
 export default function CatalogPage() {
   const { motorcycles: MOTORCYCLES, brands: BRANDS, categories: serverCategories, loading, error } = useCatalog()
   const [selected, setSelected] = useState<Motorcycle | null>(null)
+  const [searchParams] = useSearchParams()
+  useEffect(() => { const slug = searchParams.get('model'); if (!loading && !error && slug) setSelected(MOTORCYCLES.find(m => m.slug === slug) || null) }, [searchParams, MOTORCYCLES, loading, error])
   const [filterBrand, setFilterBrand] = useState<string>('')
   const [filterCategory, setFilterCategory] = useState<string>('')
   const [filterYear, setFilterYear] = useState<number | ''>('')
