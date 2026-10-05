@@ -147,3 +147,6 @@
 
 # Ship the brand logo directly so hosting builds do not require Git LFS.
 src/imports/motoapex-logo.png -filter -diff -merge -text
+src/imports/motoapex-brand.webp -filter -diff -merge -text
+public/favicon-motoapex.ico -filter -diff -merge -text
+public/apple-touch-icon.png -filter -diff -merge -text

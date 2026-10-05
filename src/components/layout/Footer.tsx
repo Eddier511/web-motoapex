@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import { useCatalog } from '../../data/CatalogContext'
 import LeadForm from '../LeadForm'
-import logoImg from '@/imports/motoapex-logo.png'
+import logoImg from '@/imports/motoapex-brand.webp'
 
 export default function Footer() {
   const { brands: BRANDS } = useCatalog()
@@ -46,7 +46,7 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <img src={logoImg} alt="Moto Apex Costa Rica" width={1254} height={1254} loading="lazy" className="h-16 w-16 object-contain" />
+          <img src={logoImg} alt="Moto Apex Costa Rica" width={256} height={256} loading="lazy" className="h-16 w-16 object-contain" />
           <span className="text-white/30 text-xs">© {year} Moto Apex Costa Rica</span>
         </div>
         <div className="flex items-center gap-3 flex-wrap justify-center">

@@ -1,5 +1,8 @@
 {
-  "description": "This modern web application showcases a motorcycle agency's offerings, featuring new and used bikes from top brands, enhancing user engagement and sales.",
+  "title": "MotoApex | Motocicletas en Costa Rica",
+  "language": "es-CR",
+  "description": "MotoApex Costa Rica: descubre nuestras motocicletas, explora modelos y colores, y consulta disponibilidad con nuestros asesores.",
+  "icons": { "icon": "/favicon-motoapex.ico" },
   "robots": {
     "index": false
   },

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link, useLocation } from 'react-router'
 import { useCatalog } from '../../data/CatalogContext'
-import logoImg from '@/imports/motoapex-logo.png'
+import logoImg from '@/imports/motoapex-brand.webp'
 
 const NAV_LINKS = [
   { label: 'Motocicletas', href: '/motocicletas', hasMega: true },
@@ -102,7 +102,7 @@ function MobileMenu({
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0f0f0]">
         <Link to="/" onClick={onClose} aria-label="Moto Apex Costa Rica — Inicio">
-          <img src={logoImg} alt="Moto Apex Costa Rica" width={1254} height={1254} className="h-16 w-16 object-contain" />
+          <img src={logoImg} alt="Moto Apex Costa Rica" width={256} height={256} className="h-16 w-16 object-contain" />
         </Link>
         <button onClick={onClose} className="p-2 text-[#333]" aria-label="Cerrar menú">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -246,7 +246,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" aria-label="Moto Apex Costa Rica — Inicio" className="flex items-center gap-3 flex-shrink-0 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111]">
-            <img src={logoImg} alt="Moto Apex Costa Rica" width={1254} height={1254} fetchPriority="high" className="h-14 w-14 sm:h-[60px] sm:w-[60px] object-contain" />
+            <img src={logoImg} alt="Moto Apex Costa Rica" width={256} height={256} fetchPriority="high" className="h-14 w-14 sm:h-[60px] sm:w-[60px] object-contain" />
             {activeBrand && (
               <span
                 className="font-display hidden sm:inline text-xs font-black tracking-widest uppercase px-2.5 py-1 text-white"
