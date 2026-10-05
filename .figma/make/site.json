@@ -1,0 +1,10 @@
+{
+  "description": "This modern web application showcases a motorcycle agency's offerings, featuring new and used bikes from top brands, enhancing user engagement and sales.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
