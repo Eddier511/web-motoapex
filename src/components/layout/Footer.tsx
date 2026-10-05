@@ -6,11 +6,18 @@ import ContactDetails from '../ContactDetails'
 import ResourceStatus from '../ResourceStatus'
 import { parsePages, parseSocialLinks } from '../../api/content'
 import { usePublicResource } from '../../data/PublicDataContext'
+import SocialLinks from '../SocialLinks'
+import { useEffect } from 'react'
 
 export default function Footer() {
   const { brands: BRANDS } = useCatalog()
   const contact = useContact()
   const socials = usePublicResource('social-links', parseSocialLinks)
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') socials.reload() }
+    window.addEventListener('focus', refresh)
+    return () => window.removeEventListener('focus', refresh)
+  }, [socials.reload])
   const pages = usePublicResource('pages', parsePages)
   const year = new Date().getFullYear()
 
@@ -28,6 +35,7 @@ export default function Footer() {
               <span className="text-white/20">de tu moto</span>
             </h2>
             <ContactDetails />
+            <SocialLinks links={socials.data || []} />
           </div>
 
           {/* Contact form */}
@@ -50,17 +58,6 @@ export default function Footer() {
             >
               {b.name}
             </Link>
-          ))}
-          <span className="text-white/20 text-xs mx-1">|</span>
-          {socials.data?.map((s) => (
-            <a
-              key={s.id}
-              href={s.url}
-              target="_blank" rel="noopener noreferrer"
-              className="font-display text-xs tracking-widest uppercase text-white/30 hover:text-white/60 transition-colors"
-            >
-              {s.label}
-            </a>
           ))}
           {pages.data?.map(p => <Link key={p.id} to={`/paginas/${p.slug}`} className="font-display text-xs tracking-widest uppercase text-white/30 hover:text-white/60">{p.title}</Link>)}
         </div>
