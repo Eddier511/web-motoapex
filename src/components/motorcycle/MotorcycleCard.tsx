@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Motorcycle } from '../../types'
+import { visiblePrice, formatPrice } from '../../api/catalog'
 
 interface MotorcycleCardProps {
   motorcycle: Motorcycle
@@ -7,7 +8,7 @@ interface MotorcycleCardProps {
   compact?: boolean
 }
 
-const fmt = (n: number) => `$${n.toLocaleString('en-US')}`
+
 
 export default function MotorcycleCard({ motorcycle, onClick, compact = false }: MotorcycleCardProps) {
   const [hovered, setHovered] = useState(false)
@@ -63,6 +64,7 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false }:
       {/* Content */}
       <div className="p-4 sm:p-5 flex flex-col flex-1">
         <div className="mb-3 flex-1">
+          <p className="text-xs text-[#888] mb-2">{{ available: 'Disponible', reserved: 'Reservado', 'coming-soon': 'Próximamente', 'sold-out': 'Agotado' }[motorcycle.availability]}</p>
           <p className="font-display text-xs font-bold tracking-widest uppercase mb-0.5"
             style={{ color: brandColor }}>
             {motorcycle.brandName} · {motorcycle.categoryName}
@@ -97,13 +99,13 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false }:
 
         {/* Price & CTA */}
         <div className="flex items-center justify-between border-t border-[#f0f0f0] pt-4">
-          {motorcycle.price ? (
+          {visiblePrice(motorcycle) !== undefined ? (
             <p className="font-display text-xl font-black text-[#111]">
-              {fmt(motorcycle.price)}
-              <span className="text-xs text-[#ccc] font-normal ml-1">USD</span>
+              {formatPrice(visiblePrice(motorcycle)!, motorcycle.currency)}
+              
             </p>
           ) : (
-            <p className="font-display text-sm font-black text-[#888]">Consultar</p>
+            <p className="font-display text-sm font-black text-[#888]">Precio no publicado</p>
           )}
           <button
             className="font-display text-[10px] font-black tracking-widest uppercase px-3 py-2 text-white hover:opacity-80 transition-opacity"
@@ -116,3 +118,4 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false }:
     </div>
   )
 }
+

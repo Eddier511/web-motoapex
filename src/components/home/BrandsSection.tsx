@@ -18,12 +18,12 @@ function BrandCard({ brand }: { brand: Brand }) {
     >
       {/* Image */}
       <div className="relative h-64 sm:h-72 lg:h-80 overflow-hidden bg-[#111]">
-        <img
+        {brand.tileImageUrl && <img
           src={brand.tileImageUrl}
           alt={brand.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           style={{ opacity: hovered ? 0.6 : 0.75 }}
-        />
+        />}
         {/* Gradient */}
         <div
           className="absolute inset-0 transition-opacity duration-300"

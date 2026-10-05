@@ -1,23 +1,27 @@
 import { useState, useMemo } from 'react'
 import { useParams, useSearchParams, Link } from 'react-router'
-import { getBrand, getMotorcyclesByBrand } from '../data/mock'
+import { useCatalog } from '../data/CatalogContext'
+import CatalogStatus from '../components/CatalogStatus'
 import MotorcycleCard from '../components/motorcycle/MotorcycleCard'
 import MotorcycleModal from '../components/motorcycle/MotorcycleModal'
 import type { Motorcycle } from '../types'
 
 export default function BrandPage() {
+  const { brands, motorcycles, loading, error } = useCatalog()
   const { brand: brandSlug } = useParams<{ brand: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selected, setSelected] = useState<Motorcycle | null>(null)
 
-  const brand = getBrand(brandSlug ?? '')
-  const allMotorcycles = getMotorcyclesByBrand(brandSlug ?? '')
+  const brand = brands.find(b => b.slug === brandSlug)
+  const allMotorcycles = motorcycles.filter(m => m.brandId === brand?.id)
   const activeCatSlug = searchParams.get('category') ?? ''
 
   const filtered = useMemo(() => {
     if (!activeCatSlug) return allMotorcycles
-    return allMotorcycles.filter((m) => m.categoryId === activeCatSlug)
-  }, [allMotorcycles, activeCatSlug])
+    return allMotorcycles.filter((m) => m.categoryId === brand?.categories.find(c => c.slug === activeCatSlug)?.id)
+  }, [allMotorcycles, activeCatSlug, brand])
+
+  if (loading || error) return <main className="pt-16 min-h-screen"><CatalogStatus /></main>
 
   if (!brand) {
     return (
@@ -60,12 +64,12 @@ export default function BrandPage() {
           className="brand-hero-moto absolute right-0 top-0 bottom-0 z-0"
           style={{ width: '62%' }}
         >
-          <img
+          {brand.heroImageUrl && <img
             src={brand.heroImageUrl}
             alt=""
             className="w-full h-full"
             style={{ objectFit: 'contain', objectPosition: 'right center' }}
-          />
+          />}
           {/* Horizontal gradient: black → transparent */}
           <div
             className="absolute inset-0"
@@ -329,3 +333,4 @@ export default function BrandPage() {
     </main>
   )
 }
+

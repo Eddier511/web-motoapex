@@ -1,4 +1,5 @@
-import { createBrowserRouter, Outlet } from 'react-router'
+import { createBrowserRouter, Outlet, useLocation } from 'react-router'
+import { useEffect } from 'react'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import HomePage from './pages/HomePage'
@@ -6,6 +7,11 @@ import BrandPage from './pages/BrandPage'
 import CatalogPage from './pages/CatalogPage'
 
 function Root() {
+  const { pathname, hash } = useLocation()
+  useEffect(() => {
+    if (hash) document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView()
+    else window.scrollTo(0, 0)
+  }, [pathname, hash])
   return (
     <div className="min-h-screen flex flex-col">
       <Header />

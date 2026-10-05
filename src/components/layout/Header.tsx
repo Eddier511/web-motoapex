@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link, useLocation } from 'react-router'
-import { BRANDS } from '../../data/mock'
+import { useCatalog } from '../../data/CatalogContext'
 import logoImg from '@/imports/motoapex-logo.png'
 
 const NAV_LINKS = [
@@ -11,6 +11,7 @@ const NAV_LINKS = [
 ]
 
 function MegaMenu({ onClose }: { onClose: () => void }) {
+  const { brands: BRANDS } = useCatalog()
   return (
     <div
       className="absolute top-full left-0 right-0 bg-white border-t-2 border-[#e0e0e0] shadow-2xl z-50"
@@ -91,6 +92,7 @@ function MobileMenu({
   open: boolean
   onClose: () => void
 }) {
+  const { brands: BRANDS } = useCatalog()
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null)
 
   if (!open) return null
@@ -200,6 +202,7 @@ function MobileMenu({
 }
 
 export default function Header() {
+  const { brands: BRANDS } = useCatalog()
   const [megaOpen, setMegaOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)

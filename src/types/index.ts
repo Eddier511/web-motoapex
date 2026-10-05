@@ -3,6 +3,8 @@ export interface MotorcycleImage {
   url: string
   alt: string
   label?: string
+  order?: number
+  isPrimary?: boolean
 }
 
 export interface ColorOption {
@@ -10,6 +12,8 @@ export interface ColorOption {
   name: string
   hex: string
   images: MotorcycleImage[]
+  available?: boolean
+  order?: number
 }
 
 export interface Spec {
@@ -23,9 +27,12 @@ export interface Category {
   slug: string
   name: string
   brandId: string
+  order?: number
 }
 
 export interface Brand {
+  logo?: string
+  order?: number
   id: string
   slug: string
   name: string
@@ -51,9 +58,12 @@ export interface Motorcycle {
   categoryId: string
   categoryName: string
   price?: number
+  promoPrice?: number
+  showPrice: boolean
+  allowQuote: boolean
   currency: string
   description: string
-  availability: 'available' | 'pre-order' | 'sold-out' | 'coming-soon'
+  availability: 'available' | 'reserved' | 'sold-out' | 'coming-soon'
   isNew?: boolean
   isFeatured?: boolean
   cc?: number
@@ -64,10 +74,10 @@ export interface Motorcycle {
 }
 
 export interface Promotion {
+  brandSlug?: string
   id: string
   title: string
   description: string
-  brandId?: string
   imageUrl: string
   originalPrice?: number
   promoPrice?: number
@@ -77,8 +87,8 @@ export interface Promotion {
 }
 
 export interface HeroSlide {
+  brandSlug?: string
   id: string
-  brandId?: string
   title: string
   subtitle: string
   imageUrl: string

@@ -1,11 +1,14 @@
-import { BRANDS, HERO_SLIDES, getFeaturedMotorcycles, PROMOTIONS } from '../data/mock'
+import { HERO_SLIDES, PROMOTIONS } from '../data/editorial'
+import { useCatalog } from '../data/CatalogContext'
+import CatalogStatus from '../components/CatalogStatus'
 import HeroSection from '../components/home/HeroSection'
 import BrandsSection from '../components/home/BrandsSection'
 import FeaturedSection from '../components/home/FeaturedSection'
 import { Link } from 'react-router'
 
 export default function HomePage() {
-  const featured = getFeaturedMotorcycles()
+  const { brands: BRANDS, motorcycles, loading, error } = useCatalog()
+  const featured = motorcycles.filter(m => m.isFeatured)
 
   return (
     <main>
@@ -28,7 +31,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <BrandsSection brands={BRANDS} />
+      <CatalogStatus />
+      {!loading && !error && <BrandsSection brands={BRANDS} />}
 
       {/* Promotions */}
       {PROMOTIONS.length > 0 && (
@@ -54,7 +58,7 @@ export default function HomePage() {
             {/* Cards */}
             <div className="grid sm:grid-cols-2 gap-4">
               {PROMOTIONS.map((promo) => {
-                const brand = BRANDS.find((b) => b.id === promo.brandId)
+                const brand = BRANDS.find((b) => b.slug === promo.brandSlug)
                 const saving = promo.originalPrice && promo.promoPrice
                   ? promo.originalPrice - promo.promoPrice
                   : null
@@ -174,3 +178,4 @@ export default function HomePage() {
     </main>
   )
 }
+

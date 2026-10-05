@@ -1,8 +1,10 @@
 import { Link } from 'react-router'
-import { BRANDS } from '../../data/mock'
+import { useCatalog } from '../../data/CatalogContext'
+import LeadForm from '../LeadForm'
 import logoImg from '@/imports/motoapex-logo.png'
 
 export default function Footer() {
+  const { brands: BRANDS } = useCatalog()
   const year = new Date().getFullYear()
 
   return (
@@ -37,7 +39,7 @@ export default function Footer() {
           </div>
 
           {/* Contact form */}
-          <ContactForm />
+          <LeadForm dark />
         </div>
       </div>
 
@@ -70,43 +72,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
-}
-
-function ContactForm() {
-  return (
-    <form
-      onSubmit={(e) => e.preventDefault()}
-      className="space-y-4"
-    >
-      <h3 className="font-display text-xl font-black uppercase text-white mb-5">Formulario de contacto</h3>
-      {[
-        { id: 'name', label: 'Nombre', type: 'text', ph: 'Tu nombre completo' },
-        { id: 'email', label: 'Email', type: 'email', ph: 'tu@email.com' },
-        { id: 'phone', label: 'Teléfono', type: 'tel', ph: '+506 8000 0000' },
-        { id: 'model', label: 'Moto de interés', type: 'text', ph: 'ej. Ducati Panigale V4 R' },
-      ].map((f) => (
-        <div key={f.id}>
-          <label
-            htmlFor={f.id}
-            className="font-display block text-xs font-bold tracking-widest uppercase text-white/40 mb-1.5"
-          >
-            {f.label}
-          </label>
-          <input
-            id={f.id}
-            type={f.type}
-            placeholder={f.ph}
-            className="w-full bg-white/5 border border-white/10 text-white text-sm px-4 py-3 focus:outline-none focus:border-white/30 transition-colors placeholder:text-white/20"
-          />
-        </div>
-      ))}
-      <button
-        type="submit"
-        className="font-display w-full py-4 text-sm font-black tracking-widest uppercase bg-white text-[#111] hover:bg-white/90 transition-colors"
-      >
-        Enviar consulta
-      </button>
-    </form>
   )
 }

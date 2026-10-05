@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react'
-import { MOTORCYCLES, BRANDS } from '../data/mock'
+import { useCatalog } from '../data/CatalogContext'
+import CatalogStatus from '../components/CatalogStatus'
+import { comparePrice } from '../api/catalog'
 import MotorcycleCard from '../components/motorcycle/MotorcycleCard'
 import MotorcycleModal from '../components/motorcycle/MotorcycleModal'
 import type { Motorcycle } from '../types'
@@ -9,10 +11,11 @@ type SortOption = 'price-asc' | 'price-desc' | 'year-desc' | 'model-asc'
 const CURRENT_YEAR = new Date().getFullYear()
 
 export default function CatalogPage() {
+  const { motorcycles: MOTORCYCLES, brands: BRANDS, categories: serverCategories, loading, error } = useCatalog()
   const [selected, setSelected] = useState<Motorcycle | null>(null)
   const [filterBrand, setFilterBrand] = useState<string>('')
   const [filterCategory, setFilterCategory] = useState<string>('')
-  const [filterYear, setFilterYear] = useState<number | ''>(CURRENT_YEAR)
+  const [filterYear, setFilterYear] = useState<number | ''>('')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortOption>('year-desc')
   const [filterNew, setFilterNew] = useState(false)
@@ -20,14 +23,11 @@ export default function CatalogPage() {
   const availableYears = useMemo(() => {
     const years = [...new Set(MOTORCYCLES.map((m) => m.year))].sort((a, b) => b - a)
     return years
-  }, [])
+  }, [MOTORCYCLES])
 
   const categories = useMemo(() => {
-    const brandData = filterBrand ? BRANDS.filter((b) => b.id === filterBrand) : BRANDS
-    const cats = new Map<string, string>()
-    brandData.forEach((b) => b.categories.forEach((c) => cats.set(c.slug, c.name)))
-    return [...cats.entries()]
-  }, [filterBrand])
+    return serverCategories.filter(c => !filterBrand || !c.brandId || c.brandId === filterBrand).map(c => [c.id, c.name])
+  }, [filterBrand, serverCategories])
 
   const filtered = useMemo(() => {
     let list = [...MOTORCYCLES]
@@ -43,15 +43,15 @@ export default function CatalogPage() {
     }
     list.sort((a: Motorcycle, b: Motorcycle) => {
       switch (sort) {
-        case 'price-asc': return (a.price ?? 0) - (b.price ?? 0)
-        case 'price-desc': return (b.price ?? 0) - (a.price ?? 0)
+        case 'price-asc': return comparePrice(a, b)
+        case 'price-desc': return comparePrice(a, b, true)
         case 'year-desc': return b.year - a.year
         case 'model-asc': return a.model.localeCompare(b.model)
         default: return 0
       }
     })
     return list
-  }, [filterBrand, filterCategory, filterYear, search, sort, filterNew])
+  }, [MOTORCYCLES, filterBrand, filterCategory, filterYear, search, sort, filterNew])
 
   return (
     <main className="pt-16 min-h-screen bg-[#f7f7f5]">
@@ -191,9 +191,9 @@ export default function CatalogPage() {
               </div>
 
               {/* Reset */}
-              {(filterBrand || filterCategory || filterYear !== CURRENT_YEAR || search || filterNew) && (
+              {(filterBrand || filterCategory || filterYear !== '' || search || filterNew) && (
                 <button
-                  onClick={() => { setFilterBrand(''); setFilterCategory(''); setFilterYear(CURRENT_YEAR); setSearch(''); setFilterNew(false) }}
+                  onClick={() => { setFilterBrand(''); setFilterCategory(''); setFilterYear(''); setSearch(''); setFilterNew(false) }}
                   className="font-display text-xs font-black tracking-widest uppercase text-[#cc3333] hover:text-[#aa1111] transition-colors w-full text-left"
                 >
                   Limpiar filtros
@@ -221,12 +221,13 @@ export default function CatalogPage() {
               </select>
             </div>
 
-            {filtered.length === 0 ? (
+            <CatalogStatus />
+            {loading || error || MOTORCYCLES.length === 0 ? null : filtered.length === 0 ? (
               <div className="text-center py-24 bg-white border border-[#e8e8e8]">
                 <p className="font-display text-4xl font-black uppercase text-[#eee] mb-3">Sin resultados</p>
                 <p className="text-[#bbb] text-sm mb-6">Prueba con otros filtros.</p>
                 <button
-                  onClick={() => { setFilterBrand(''); setFilterCategory(''); setFilterYear(CURRENT_YEAR); setSearch(''); setFilterNew(false) }}
+                  onClick={() => { setFilterBrand(''); setFilterCategory(''); setFilterYear(''); setSearch(''); setFilterNew(false) }}
                   className="font-display text-sm font-black tracking-widest uppercase px-6 py-3 bg-[#111] text-white hover:bg-[#333] transition-colors"
                 >
                   Limpiar filtros
@@ -253,3 +254,4 @@ export default function CatalogPage() {
     </main>
   )
 }
+

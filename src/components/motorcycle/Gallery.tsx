@@ -9,19 +9,23 @@ interface GalleryProps {
 
 export default function Gallery({ images, brandColor, onImageChange }: GalleryProps) {
   const [current, setCurrent] = useState(0)
+  const [failed, setFailed] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
   // Reset to first image when images array changes (color switch)
   useEffect(() => {
     setCurrent(0)
     setLoaded(false)
+    setFailed(false)
   }, [images])
 
   const go = useCallback(
     (index: number) => {
+      if (!images.length) return
       const next = (index + images.length) % images.length
       setCurrent(next)
       setLoaded(false)
+      setFailed(false)
       onImageChange?.(next)
     },
     [images.length, onImageChange],
@@ -33,6 +37,7 @@ export default function Gallery({ images, brandColor, onImageChange }: GalleryPr
   // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLElement && e.target.closest('input, textarea, select, [contenteditable]')) return
       if (e.key === 'ArrowLeft') prev()
       if (e.key === 'ArrowRight') next()
     }
@@ -58,9 +63,9 @@ export default function Gallery({ images, brandColor, onImageChange }: GalleryPr
     }
   }, [prev, next])
 
-  if (!images.length) return null
+  if (!images.length) return <div className="h-full flex items-center justify-center bg-[#f5f5f5] text-[#888]" role="status">Sin imágenes para este color</div>
 
-  const img = images[current]
+  const img = images[current] ?? images[0]
 
   return (
     <div className="flex flex-col h-full">
@@ -71,15 +76,17 @@ export default function Gallery({ images, brandColor, onImageChange }: GalleryPr
           src={img.url}
           alt={img.alt}
           onLoad={() => setLoaded(true)}
+          onError={() => { setFailed(true); setLoaded(true) }}
           className="max-w-full max-h-full transition-opacity duration-300"
           style={{
             width: '100%',
             height: '100%',
             objectFit: 'contain',
-            opacity: loaded ? 1 : 0,
+            opacity: loaded && !failed ? 1 : 0,
           }}
         />
 
+        {failed && <p role="status" className="absolute inset-0 flex items-center justify-center text-[#888]">No se pudo cargar la imagen</p>}
         {/* Loading skeleton */}
         {!loaded && (
           <div className="absolute inset-0 bg-[#f0f0f0] animate-pulse" />
@@ -182,3 +189,4 @@ export default function Gallery({ images, brandColor, onImageChange }: GalleryPr
     </div>
   )
 }
+

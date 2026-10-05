@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import type { Motorcycle } from '../../types'
+import { visiblePrice, formatPrice } from '../../api/catalog'
 import Gallery from './Gallery'
 import ColorSelector from './ColorSelector'
 import SpecsSection from './SpecsSection'
+import LeadForm from '../LeadForm'
 
 interface MotorcycleModalProps {
   motorcycle: Motorcycle
   onClose: () => void
 }
 
-const fmt = (n: number) => `$${n.toLocaleString('en-US')}`
+
 
 export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModalProps) {
   const { brandColor, colorOptions, specs } = motorcycle
@@ -37,14 +39,14 @@ export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModal
 
   const availLabel: Record<string, string> = {
     available: 'Disponible',
-    'pre-order': 'Pre-orden',
+    reserved: 'Reservado',
     'sold-out': 'Agotado',
     'coming-soon': 'Próximamente',
   }
 
   const availColor: Record<string, string> = {
     available: '#16a34a',
-    'pre-order': '#d97706',
+    reserved: '#d97706',
     'sold-out': '#dc2626',
     'coming-soon': '#6b7280',
   }
@@ -99,7 +101,7 @@ export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModal
             style={{ maxHeight: '55%', flex: '0 0 55%' }}
           >
             <div className="flex-1 min-h-0 lg:max-h-none" style={{ maxHeight: 'calc(55vh - 60px)' }}>
-              <Gallery images={images} brandColor={brandColor} />
+              <Gallery key={activeColorId} images={images} brandColor={brandColor} />
             </div>
           </div>
 
@@ -136,15 +138,16 @@ export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModal
 
               {/* Price & availability */}
               <div className="flex items-center justify-between flex-wrap gap-3">
-                {motorcycle.price ? (
+                {visiblePrice(motorcycle) !== undefined ? (
                   <div>
+                    {motorcycle.showPrice && motorcycle.promoPrice !== undefined && motorcycle.price !== undefined && <p className="text-sm text-[#888] line-through">{formatPrice(motorcycle.price, motorcycle.currency)}</p>}
                     <p className="font-display text-3xl sm:text-4xl font-black text-[#111] leading-none">
-                      {fmt(motorcycle.price)}
+                      {formatPrice(visiblePrice(motorcycle)!, motorcycle.currency)}
                     </p>
                     <p className="text-xs text-[#bbb] mt-1">{motorcycle.currency} · Precio de referencia</p>
                   </div>
                 ) : (
-                  <p className="font-display text-xl font-black text-[#888]">Consultar precio</p>
+                  <p className="font-display text-xl font-black text-[#888]">Precio no publicado</p>
                 )}
                 <span
                   className="font-display text-xs font-black tracking-widest uppercase px-3 py-1.5"
@@ -190,9 +193,11 @@ export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModal
                 <SpecsSection specs={specs} brandColor={brandColor} />
               )}
 
+              <LeadForm key={motorcycle.id} motorcycle={motorcycle} />
+
               {/* CTAs */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2 pb-2">
-                <a
+                {motorcycle.allowQuote && <a
                   href={`https://wa.me/50688000000?text=Hola, me interesa la ${motorcycle.brandName} ${motorcycle.model} ${motorcycle.year}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -200,7 +205,7 @@ export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModal
                   style={{ background: brandColor }}
                 >
                   Cotizar por WhatsApp
-                </a>
+                </a>}
                 <a
                   href="#contacto"
                   onClick={onClose}
@@ -217,3 +222,4 @@ export default function MotorcycleModal({ motorcycle, onClose }: MotorcycleModal
     </div>
   )
 }
+

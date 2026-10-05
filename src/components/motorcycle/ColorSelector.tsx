@@ -19,7 +19,7 @@ export default function ColorSelector({ colors, activeId, brandColor, onChange }
           Color:
         </p>
         <p className="font-display text-xs font-bold tracking-widest uppercase text-[#333]">
-          {active?.name}
+          {active?.name}{active?.available === false ? ' · No disponible' : ''}
         </p>
       </div>
       <div className="flex gap-2 flex-wrap">
@@ -27,7 +27,7 @@ export default function ColorSelector({ colors, activeId, brandColor, onChange }
           <button
             key={color.id}
             onClick={() => onChange(color.id)}
-            title={color.name}
+            title={`${color.name}${color.available === false ? ' · No disponible' : ''}`}
             className="transition-all duration-150 relative"
             style={{
               width: 28,
@@ -48,3 +48,4 @@ export default function ColorSelector({ colors, activeId, brandColor, onChange }
     </div>
   )
 }
+

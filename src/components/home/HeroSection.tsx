@@ -54,7 +54,7 @@ export default function HeroSection({ slides }: HeroSectionProps) {
 
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-end max-w-7xl mx-auto px-5 sm:px-8 md:px-14 pb-14 sm:pb-20">
-        {slide.brandId && (
+        {slide.brandSlug && (
           <p
             className="font-display text-xs font-black tracking-[0.4em] uppercase mb-3"
             style={{ color: slide.accentColor ?? '#fff' }}
