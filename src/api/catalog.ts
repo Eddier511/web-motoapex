@@ -9,6 +9,7 @@ const text = (value: unknown) => typeof value === 'string' ? value : ''
 const id = (value: unknown) => { if (typeof value !== 'string' || !value) throw new Error('ID de servidor no válido'); return value }
 const array = (value: unknown): unknown[] => { if (!Array.isArray(value)) throw new Error('Listado de catálogo no válido'); return value }
 const number = (value: unknown): number | undefined => typeof value === 'number' && Number.isFinite(value) ? value : undefined
+const positive = (value: unknown) => { const n = number(value); return n !== undefined && n > 0 ? n : undefined }
 const color = (value: unknown, fallback: string) => /^#[\da-f]{6}$/i.test(text(value)) ? text(value) : fallback
 export const httpsImage = (value: unknown) => { try { const url = new URL(text(value)); return url.protocol === 'https:' && !url.username && !url.password ? url.href : '' } catch { return '' } }
 const ordered = <T extends { order?: number }>(items: T[]) => items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -31,6 +32,8 @@ export function parseMotorcycles(value: unknown): Motorcycle[] {
     const r = record(item)
     if (!['available', 'reserved', 'coming-soon', 'sold-out'].includes(text(r.availability))) throw new Error('Disponibilidad no válida')
     if (typeof r.showPrice !== 'boolean' || typeof r.allowQuote !== 'boolean') throw new Error('Permisos de catálogo no válidos')
+    const year = number(r.year)
+    if (year === undefined || !Number.isInteger(year) || year <= 0) throw new Error('Año de catálogo no válido')
     const colorOptions: ColorOption[] = ordered(array(r.colorOptions).map(item => {
       const c = record(item)
       const images: MotorcycleImage[] = ordered(array(c.images).map(item => { const i = record(item); return {
@@ -42,11 +45,11 @@ export function parseMotorcycles(value: unknown): Motorcycle[] {
     return {
       id: id(r.id), slug: id(r.slug), brandId: id(r.brandId), categoryId: id(r.categoryId),
       brandName: text(r.brandName), brandColor: color(r.brandColor, '#111111'), categoryName: text(r.categoryName),
-      model: text(r.model), year: number(r.year) ?? 0, currency: text(r.currency), description: text(r.description), tagline: text(r.tagline),
+      model: id(r.model), year, currency: text(r.currency), description: text(r.description), tagline: text(r.tagline),
       showPrice: r.showPrice, allowQuote: r.allowQuote,
       price: r.showPrice ? number(r.price) : undefined, promoPrice: r.showPrice ? number(r.promoPrice) : undefined,
       availability: r.availability as Motorcycle['availability'], isNew: r.isNew === true, isFeatured: r.isFeatured === true,
-      cc: number(r.cc), hp: number(r.hp), colorOptions,
+      cc: positive(r.cc), hp: positive(r.hp), colorOptions,
       specs: array(r.specs).map(item => { const s = record(item); return { group: text(s.group), label: text(s.label), value: text(s.value) } }),
     }
   })

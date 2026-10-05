@@ -148,7 +148,7 @@ export default function BrandPage() {
                 className="font-display text-white/50 italic leading-snug"
                 style={{ fontSize: 'clamp(13px, 1.2vw, 18px)' }}
               >
-                "{brand.slogan}"
+                {brand.slogan ? `"${brand.slogan}"` : null}
               </p>
 
               <p

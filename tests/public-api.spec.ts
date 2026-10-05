@@ -18,7 +18,7 @@ const motorcycle = {
   ],
 }
 const hidden = { ...motorcycle, id: '302', slug: 'oculta', model: 'Modelo oculto', categoryId: '202', categoryName: 'Aventura', year: 2023, showPrice: false, allowQuote: false, price: 987654321, promoPrice: 123456789, availability: 'sold-out', colorOptions: [] }
-const coming = { ...motorcycle, id: '303', slug: 'futura', model: 'Modelo futuro', year: 2027, categoryId: '202', availability: 'coming-soon', price: undefined, isNew: true }
+const coming = { ...motorcycle, id: '303', slug: 'futura', model: 'Modelo futuro', year: 2027, categoryId: '202', availability: 'coming-soon', price: undefined, cc: 0, hp: 0, isNew: true }
 
 async function catalog(page: Page, motos: unknown[] = [motorcycle, hidden, coming]) {
   await page.route('https://**/*', async route => {
@@ -199,6 +199,8 @@ test('absent prices are never replaced by zero and all availability labels remai
   await page.goto('/motocicletas')
   await expect(card(page, 'Modelo futuro')).toContainText('Precio no publicado')
   await expect(card(page, 'Modelo futuro')).toContainText('Próximamente')
+  await expect(card(page, 'Modelo futuro').getByText('CC', { exact: true })).toHaveCount(0)
+  await expect(card(page, 'Modelo futuro').getByText('HP', { exact: true })).toHaveCount(0)
   await expect(card(page, 'Modelo disponible')).toContainText('Disponible')
   await card(page, 'Modelo futuro').click()
   await expect(page.getByRole('dialog').getByText('Precio no publicado', { exact: true })).toBeVisible()
