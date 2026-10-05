@@ -68,6 +68,12 @@ La comprobación inicial devolvió **HTTP 403 con HTML de alojamiento**. En las 
 
 Quedan por verificar: CORS desde el dominio definitivo, filtros y permisos con un catálogo real más amplio, creación de un lead autorizada con 201, su recepción en administración y el 429 del servidor. También queda pendiente la navegación con recarga en el hosting final.
 
+## Overlay de carga
+
+`LoadingOverlay` usa un portal fuera del contenido inerte y se monta una sola vez desde `CatalogProvider`. Espera únicamente los GET públicos de marcas, categorías y motocicletas; no espera fotografías, fuentes, promociones ni analítica. Se cierra cuando el catálogo está listo o falla, y el mensaje de error conserva el reintento y los límites 429. Las rutas comparten el catálogo ya cargado, por lo que navegar entre ellas no inicia solicitudes ni muestra otro overlay. Una recarga directa vuelve a solicitar los datos necesarios. Cualquier futura carga de datos por ruta debe coordinarse en este proveedor para conservar un único overlay.
+
+El diálogo bloquea teclado y desplazamiento del fondo, restaura sus estilos, posición y foco al cerrar (o enfoca el contenido principal si desapareció el control original), y respeta movimiento reducido. Las pruebas de navegador controlan solicitudes simultáneas, carga inicial, recarga, navegación con caché, error, reintento, foco, desplazamiento y móvil; estas respuestas de prueba nunca forman parte de la aplicación.
+
 ## Cambio futuro de dominio API
 
 Después de instalar TLS, DNS y el backend en `api.motoapexcr.com`, conservar el contrato y cambiar:

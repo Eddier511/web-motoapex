@@ -45,6 +45,26 @@ body.modal-open {
   overflow: hidden;
 }
 
+.loading-backdrop {
+  background: rgb(0 0 0 / 45%);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  overscroll-behavior: contain;
+  touch-action: none;
+}
+.loading-popup { box-shadow: 0 24px 70px rgb(0 0 0 / 18%); }
+.loading-spinner { animation: loading-spin 1s linear infinite; }
+.loading-progress { animation: loading-slide 1.5s ease-in-out infinite; }
+@keyframes loading-spin { to { transform: rotate(360deg); } }
+@keyframes loading-slide {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(350%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner, .loading-progress { animation: none; }
+  .loading-progress { left: 30%; }
+}
+
 /* Brand hero — mobile: moto is full-bg, content is full-width */
 @media (max-width: 639px) {
   .brand-hero-moto {

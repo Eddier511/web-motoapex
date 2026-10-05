@@ -34,6 +34,7 @@ async function catalog(page: Page, motos: unknown[] = [motorcycle, hidden, comin
 }
 const card = (page: Page, model = 'Modelo real') => page.getByRole('button').filter({ has: page.getByRole('heading', { name: model, exact: true }) })
 async function fields(form: ReturnType<Page['locator']>) {
+  await expect(form.page().locator('#root')).toHaveJSProperty('inert', false)
   await form.getByLabel('Nombre', { exact: true }).fill('Prueba de contrato')
   await form.getByLabel('Teléfono', { exact: true }).fill('88888888')
   await form.getByLabel('Email (opcional)', { exact: true }).fill('test@example.test')

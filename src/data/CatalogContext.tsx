@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useCallback, useState, type React
 import type { Brand, Category, Motorcycle } from '../types'
 import { request, ApiError } from '../api/client'
 import { parseBrands, parseCategories, parseMotorcycles } from '../api/catalog'
+import LoadingOverlay from '../components/LoadingOverlay'
 
 interface Catalog {
   brands: Brand[]; categories: Category[]; motorcycles: Motorcycle[]
@@ -32,6 +33,6 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     }).finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [revision])
-  return <Context.Provider value={{ ...data, loading, error, retryAt, reload }}>{children}</Context.Provider>
+  return <Context.Provider value={{ ...data, loading, error, retryAt, reload }}>{children}{loading && <LoadingOverlay />}</Context.Provider>
 }
 export function useCatalog() { const value = useContext(Context); if (!value) throw new Error('Falta CatalogProvider'); return value }
