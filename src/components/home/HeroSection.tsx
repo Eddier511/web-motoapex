@@ -31,7 +31,7 @@ export default function HeroSection({ slides }: HeroSectionProps) {
   if (!slide) return null
 
   return (
-    <section className="relative h-[62vh] min-h-[420px] max-h-[620px] overflow-hidden bg-[#111]">
+    <section className="relative mt-16 h-[68svh] min-h-[480px] max-h-[640px] sm:h-[72vh] sm:min-h-[520px] sm:max-h-[760px] overflow-hidden bg-[#111]">
       {/* Background image */}
       <picture key={slide.id}>
       {slide.mobileImageUrl && <source media="(max-width: 639px)" srcSet={slide.mobileImageUrl} />}
@@ -40,7 +40,7 @@ export default function HeroSection({ slides }: HeroSectionProps) {
         src={slide.imageUrl}
         alt={slide.alt}
         onLoad={() => setLoaded(true)}
-        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+        className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-[center_35%] transition-opacity duration-700"
         style={{ opacity: loaded ? 0.7 : 0 }}
       />
       </picture>
