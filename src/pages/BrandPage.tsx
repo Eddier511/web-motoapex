@@ -222,8 +222,8 @@ export default function BrandPage() {
                 className="font-display text-xs sm:text-sm font-black tracking-widest uppercase px-4 sm:px-6 py-4 whitespace-nowrap transition-all relative flex-shrink-0"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  color: !activeCatSlug ? primaryColor : '#555',
-                  background: !activeCatSlug ? accentLight : 'transparent',
+                  color: !activeCatSlug ? '#fff' : '#555',
+                  background: !activeCatSlug ? primaryColor : 'transparent',
                 }}
               >
                 Todos
@@ -240,8 +240,8 @@ export default function BrandPage() {
                     className="font-display text-xs sm:text-sm font-black tracking-widest uppercase px-4 sm:px-6 py-4 whitespace-nowrap transition-all relative flex-shrink-0"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      color: isActive ? primaryColor : '#555',
-                      background: isActive ? accentLight : 'transparent',
+                      color: isActive ? '#fff' : '#555',
+                      background: isActive ? primaryColor : 'transparent',
                     }}
                   >
                     {cat.name}
@@ -333,4 +333,3 @@ export default function BrandPage() {
     </main>
   )
 }
-
