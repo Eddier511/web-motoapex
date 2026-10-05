@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useLocation } from 'react-router'
 import { parseContact, parseSettings } from '../api/content'
 import { usePublicResource } from '../data/PublicDataContext'
+import officialLogo from '@/imports/motoapex-brand.webp'
 
 export const useContact = () => usePublicResource('contact', parseContact)
 export default function PublicSite() {
@@ -27,6 +28,5 @@ export default function PublicSite() {
   return null
 }
 export function PublicLogo({ className, priority = false }: { className: string; priority?: boolean }) {
-  const { data } = useContact()
-  return data?.logoUrl ? <img src={data.logoUrl} alt={data.businessName} width={256} height={256} fetchPriority={priority ? 'high' : 'auto'} className={className} /> : <span className="font-display font-black uppercase text-sm leading-tight max-w-[160px]">{data?.businessName || 'Inicio'}</span>
+  return <img src={officialLogo} alt="MotoApex Costa Rica" width={256} height={256} fetchPriority={priority ? 'high' : 'auto'} className={className} />
 }
