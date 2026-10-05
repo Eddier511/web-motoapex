@@ -64,9 +64,9 @@ Hero y promociones permanecen en `src/data/editorial.ts` porque la API v1 todav�
 
 Compilación y TypeScript pasan. Las verificaciones de navegador usan respuestas aisladas del contrato, no acreditan que el backend esté instalado.
 
-El servidor actual devuelve **HTTP 403 con HTML de alojamiento**, no JSON de API, en `/v1/health`, `/v1/public/brands`, `/v1/public/categories` y `/v1/public/motorcycles`. No se enviaron leads reales ni se crearon datos de prueba en producción. No se sustituyen estos errores por mocks.
+La comprobación inicial devolvió **HTTP 403 con HTML de alojamiento**. En las comprobaciones posteriores, `/v1/health` devolvió HTTP 200 con `{data:{status:"ok"}}` y los tres GET públicos devolvieron JSON de catálogo; se revisaron las tarjetas con las fotografías HTTPS de las dos motos publicadas. No se enviaron leads reales ni se crearon datos de prueba en producción. La revisión visual utiliza una captura de las respuestas públicas para aislar el diseño y no acredita CORS desde el dominio final.
 
-Cuando la API esté disponible, quedan por verificar: GET reales, CORS desde el dominio definitivo, IDs/medios/especificaciones de la DB, filtros con catálogo publicado real, precios y permisos reales, creación de un lead autorizada con 201, su recepción en administración y el 429 del servidor. También queda pendiente la navegación con recarga en el hosting final.
+Quedan por verificar: CORS desde el dominio definitivo, filtros y permisos con un catálogo real más amplio, creación de un lead autorizada con 201, su recepción en administración y el 429 del servidor. También queda pendiente la navegación con recarga en el hosting final.
 
 ## Cambio futuro de dominio API
 

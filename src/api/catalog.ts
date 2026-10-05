@@ -46,6 +46,7 @@ export function parseMotorcycles(value: unknown): Motorcycle[] {
       id: id(r.id), slug: id(r.slug), brandId: id(r.brandId), categoryId: id(r.categoryId),
       brandName: text(r.brandName), brandColor: color(r.brandColor, '#111111'), categoryName: text(r.categoryName),
       model: id(r.model), year, currency: text(r.currency), description: text(r.description), tagline: text(r.tagline),
+      shortDescription: text(r.shortDescription),
       showPrice: r.showPrice, allowQuote: r.allowQuote,
       price: r.showPrice ? number(r.price) : undefined, promoPrice: r.showPrice ? number(r.promoPrice) : undefined,
       availability: r.availability as Motorcycle['availability'], isNew: r.isNew === true, isFeatured: r.isFeatured === true,

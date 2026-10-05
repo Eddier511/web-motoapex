@@ -64,6 +64,7 @@ export interface Motorcycle {
   currency: string
   description: string
   availability: 'available' | 'reserved' | 'sold-out' | 'coming-soon'
+  shortDescription?: string
   isNew?: boolean
   isFeatured?: boolean
   cc?: number
