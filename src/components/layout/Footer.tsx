@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { BRANDS } from '../../data/mock'
-import logoImg from '@/imports/image.png'
+import logoImg from '@/imports/motoapex-logo.png'
 
 export default function Footer() {
   const year = new Date().getFullYear()
@@ -44,7 +44,7 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <img src={logoImg} alt="Moto Apex" className="h-7 w-auto object-contain opacity-60" />
+          <img src={logoImg} alt="Moto Apex Costa Rica" width={1254} height={1254} loading="lazy" className="h-16 w-16 object-contain" />
           <span className="text-white/30 text-xs">© {year} Moto Apex Costa Rica</span>
         </div>
         <div className="flex items-center gap-3 flex-wrap justify-center">
