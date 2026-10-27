@@ -4,6 +4,7 @@ import type { Promotion, PromotionMotorcycle } from '../types'
 export interface PromotionContext { promotion: Promotion; relation: PromotionMotorcycle }
 export function usePromotionActive(p: Pick<Promotion, 'startsAt' | 'endsAt'>) {
   const [now, setNow] = useState(Date.now())
+  useEffect(() => { setNow(Date.now()) }, [p.startsAt, p.endsAt])
   useEffect(() => {
     const update = () => setNow(Date.now())
     const boundary = Date.now() < Date.parse(p.startsAt) ? Date.parse(p.startsAt) : Date.parse(p.endsAt) + 1

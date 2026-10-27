@@ -7,17 +7,11 @@ import ResourceStatus from '../ResourceStatus'
 import { parsePages, parseSocialLinks } from '../../api/content'
 import { usePublicResource } from '../../data/PublicDataContext'
 import SocialLinks from '../SocialLinks'
-import { useEffect } from 'react'
 
 export default function Footer() {
   const { brands: BRANDS } = useCatalog()
   const contact = useContact()
   const socials = usePublicResource('social-links', parseSocialLinks)
-  useEffect(() => {
-    const refresh = () => { if (document.visibilityState === 'visible') socials.reload() }
-    window.addEventListener('focus', refresh)
-    return () => window.removeEventListener('focus', refresh)
-  }, [socials.reload])
   const pages = usePublicResource('pages', parsePages)
   const year = new Date().getFullYear()
 

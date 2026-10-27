@@ -8,6 +8,7 @@ export default function useOffers() {
   const resource = usePublicResource('promotions', parsePromotions)
   const catalog = useCatalog()
   const [now, setNow] = useState(Date.now())
+  useEffect(() => { setNow(Date.now()) }, [resource.data])
   useEffect(() => {
     const update = () => setNow(Date.now())
     const boundaries = resource.data?.flatMap(p => [Date.parse(p.startsAt), Date.parse(p.endsAt) + 1]).filter(t => t > Date.now()) || []

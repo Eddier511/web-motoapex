@@ -6,10 +6,15 @@ export class ApiError extends Error {
 export const requestDiagnostics = new Map<string, { status: number; requestId: string }>()
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://darksalmon-quetzal-730302.hostingersite.com/v1').replace(/\/$/, '')
-if (!/^https:\/\/[^/]+\/v1$/.test(API_BASE_URL)) throw new Error('VITE_API_BASE_URL debe ser una URL HTTPS que termine en /v1')
+const base = new URL(API_BASE_URL)
+if (base.protocol !== 'https:' || base.pathname !== '/v1' || base.username || base.password || base.search || base.hash) throw new Error('VITE_API_BASE_URL debe ser una URL HTTPS sin credenciales que termine en /v1')
 
 export async function request<T>(path: string, init: RequestInit = {}, expectedStatus = 200): Promise<T> {
+  if (init.signal?.aborted) throw new DOMException('Solicitud cancelada.', 'AbortError')
   const controller = new AbortController()
+  const cancel = () => controller.abort()
+  init.signal?.addEventListener('abort', cancel, { once: true })
+  if (init.signal?.aborted) cancel()
   const timeout = setTimeout(() => controller.abort(), 15000)
   let receivedRequestId = ''
   let receivedStatus = 0
@@ -36,11 +41,12 @@ export async function request<T>(path: string, init: RequestInit = {}, expectedS
     if (!envelope || envelope.error || !Object.prototype.hasOwnProperty.call(envelope, 'data')) throw new ApiError('La API devolvió una respuesta no válida.', response.status, 0, requestId)
     return envelope.data as T
   } catch (error) {
+    if (init.signal?.aborted) throw new DOMException('Solicitud cancelada.', 'AbortError')
     if (error instanceof ApiError) throw error
     throw new ApiError(init.method === 'POST'
       ? 'No pudimos confirmar el envío. La conexión pudo interrumpirse; verifica con un asesor antes de repetir la consulta.'
       : 'No se pudo cargar el contenido. Revisa la conexión o vuelve a intentar.', receivedStatus, 0, receivedRequestId)
-  } finally { clearTimeout(timeout) }
+  } finally { clearTimeout(timeout); init.signal?.removeEventListener('abort', cancel) }
 }
 
 export interface LeadInput {

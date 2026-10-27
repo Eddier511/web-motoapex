@@ -3,6 +3,7 @@ import type { Motorcycle } from '../../types'
 import { visiblePrice, formatPrice } from '../../api/catalog'
 import PromotionPrices, { type PromotionContext, promotionDate, usePromotionActive } from '../PromotionPrices'
 import useOffers from '../../data/useOffers'
+import { useCatalog } from '../../data/CatalogContext'
 import Gallery from './Gallery'
 import ColorSelector from './ColorSelector'
 import SpecsSection from './SpecsSection'
@@ -18,14 +19,19 @@ interface MotorcycleModalProps {
 
 
 
-export default function MotorcycleModal({ motorcycle, promotionContext: explicitPromotion, onClose }: MotorcycleModalProps) {
+export default function MotorcycleModal({ motorcycle: initialMotorcycle, promotionContext: explicitPromotion, onClose }: MotorcycleModalProps) {
+  const catalog = useCatalog()
+  const motorcycle = catalog.motorcycles.find(m => m.id === initialMotorcycle.id) ?? initialMotorcycle
+  useEffect(() => {
+    if (!catalog.loading && (catalog.error || !catalog.motorcycles.some(m => m.id === initialMotorcycle.id))) onClose()
+  }, [catalog.motorcycles, catalog.loading, catalog.error, initialMotorcycle.id, onClose])
   const { byId } = useOffers()
   const promotionContext = explicitPromotion ?? byId.get(motorcycle.id)
   const quoteAllowed = motorcycle.allowQuote && (!promotionContext || promotionContext.relation.motorcycle.allowQuote)
   const promotionActive = usePromotionActive(promotionContext?.promotion ?? { startsAt: '1970-01-01T00:00:00Z', endsAt: '9999-01-01T00:00:00Z' })
   const contact = useContact()
   const { brandColor, colorOptions, specs } = motorcycle
-  const [activeColorId, setActiveColorId] = useState(colorOptions[0]?.id ?? '')
+  const [activeColorId, setActiveColorId] = useState(initialMotorcycle.colorOptions[0]?.id ?? '')
 
   const activeColor = colorOptions.find((c) => c.id === activeColorId) ?? colorOptions[0]
   const images = activeColor?.images ?? []

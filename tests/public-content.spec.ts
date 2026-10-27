@@ -278,3 +278,105 @@ test('catalog badge and promotion prices revert at expiration, sorting uses offe
   await expect(dialog.locator('[data-promotion-prices]')).toHaveCount(0)
   await expect(dialog).toContainText('Precio de referencia')
 })
+test('background refresh deduplicates campaigns and removes a withdrawn offer without an overlay', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-10-27T12:00:00Z') })
+  await contentRoutes(page)
+  let published = true, reads = 0
+  await page.route('**/v1/public/promotions', async route => {
+    reads++
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: published ? [promotion] : [] }) })
+  })
+  await page.goto('/promociones')
+  await expect(page.locator('[data-promotion-id]')).toHaveCount(3)
+  await page.locator('[data-promotion-id]').first().getByRole('button', { name: /Ver catálogo/ }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  published = false
+  await page.clock.fastForward(61000)
+  await expect(page.locator('[data-promotion-id]')).toHaveCount(0)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('#root')).toHaveJSProperty('inert', false)
+  expect(reads).toBe(2)
+})
+
+test('catalog revalidation closes a withdrawn motorcycle and preserves successful navigation', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-10-27T12:00:00Z') })
+  await contentRoutes(page)
+  let published = true
+  await page.route('**/v1/public/motorcycles', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: published ? promotionBikes : [] }) }))
+  await page.goto('/motocicletas?model=modelo-301')
+  await expect(page.getByRole('dialog')).toBeVisible()
+  published = false
+  await page.clock.fastForward(61000)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('main h3')).toHaveCount(0)
+  await expect(page.locator('#root')).toHaveJSProperty('inert', false)
+})
+
+test('refresh 429 clears stale offers and respects Retry-After without automatic retries', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-10-27T12:00:00Z') })
+  await contentRoutes(page)
+  let reads = 0
+  await page.route('**/v1/public/promotions', route => {
+    reads++
+    return route.fulfill({ status: reads === 2 ? 429 : 200, headers: { 'Retry-After': '120', 'X-Request-ID': 'refresh-limit', 'Access-Control-Expose-Headers': 'Retry-After, X-Request-ID' }, contentType: 'application/json', body: JSON.stringify(reads === 2 ? { error: { code: 'RATE_LIMITED' } } : { data: reads === 1 ? [promotion] : [] }) })
+  })
+  await page.goto('/promociones')
+  await expect(page.locator('[data-promotion-id]')).toHaveCount(3)
+  await page.clock.fastForward(61000)
+  await expect(page.locator('[data-promotion-id]')).toHaveCount(0)
+  const retry = page.locator('main').getByRole('button', { name: /Reintentar/ })
+  await expect(retry).toBeDisabled()
+  await expect(page.locator('main')).toContainText('refresh-limit')
+  await page.clock.fastForward(121000)
+  expect(reads).toBe(2)
+  await expect(retry).toBeEnabled()
+  await retry.click()
+  await expect(page.getByText('No hay promociones publicadas en este momento.')).toBeVisible()
+  expect(reads).toBe(3)
+})
+test('focus revalidates shared resources once and fresh data is not requested again', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-10-27T12:00:00Z') })
+  const network = await contentRoutes(page)
+  await page.goto('/promociones')
+  await expect(page.locator('[data-promotion-id="601"]')).toHaveCount(3)
+  expect(network.requests.filter(p => p === 'promotions')).toHaveLength(1)
+  await page.clock.fastForward(6000)
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+  await expect.poll(() => network.requests.filter(p => p === 'promotions').length).toBe(2)
+  await expect(page.locator('[data-promotion-id="601"]')).toHaveCount(3)
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+  expect(network.requests.filter(p => p === 'promotions')).toHaveLength(2)
+  await expect(page.locator('#root')).toHaveJSProperty('inert', false)
+})
+
+test('an open motorcycle reflects refreshed price permissions and specifications', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-10-27T12:00:00Z') })
+  await contentRoutes(page)
+  let restricted = false
+  await page.route('**/v1/public/motorcycles', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: promotionBikes.map(m => restricted && m.id === '301' ? { ...m, showPrice: false, allowQuote: false, specs: [{ group: 'Motor', label: 'Potencia', value: 'Dato actualizado' }] } : m) }) }))
+  await page.goto('/motocicletas?model=modelo-301')
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toContainText('$9,000 USD')
+  restricted = true
+  await page.clock.fastForward(61000)
+  await expect(dialog).toContainText('Precio no publicado')
+  await expect(dialog).toContainText('Dato actualizado')
+  await expect(dialog.locator('[data-promotion-prices]')).toHaveCount(0)
+  await expect(dialog.getByLabel('Tipo de consulta').locator('option[value="quote"]')).toHaveCount(0)
+})
+test('a campaign published after the tab opened becomes visible after refresh', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-10-27T12:00:00Z') })
+  await contentRoutes(page)
+  let reads = 0
+  await page.route('**/v1/public/promotions', route => {
+    reads++
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ data: reads === 1 ? [] : [{ ...promotion, startsAt: '2026-10-27T12:00:30Z' }] }) })
+  })
+  await page.goto('/motocicletas')
+  const card = page.getByRole('button', { name: 'Ver modelo Marca pública Modelo 301', exact: true })
+  await expect(card).toContainText('$12,000')
+  await page.clock.fastForward(61000)
+  await expect(card).toContainText('Promoción')
+  await expect(card).toContainText('$9,000 USD')
+  expect(reads).toBe(2)
+})
