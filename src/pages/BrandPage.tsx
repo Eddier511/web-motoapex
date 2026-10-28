@@ -38,7 +38,7 @@ export default function BrandPage() {
     )
   }
 
-  const { primaryColor, secondaryColor, accentLight } = brand
+  const { primaryColor } = brand
 
   const setCategory = (slug: string) => {
     if (slug) {
@@ -301,29 +301,29 @@ export default function BrandPage() {
       </section>
 
       {/* Brand footer info */}
-      <section className="py-12 sm:py-16 border-t border-[#eee]" style={{ background: accentLight }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          <p className="font-display text-xs tracking-[0.35em] uppercase mb-3" style={{ color: primaryColor }}>
+      <section aria-label={`Conoce más de ${brand.name}`} className="py-14 sm:py-20" style={{ background: primaryColor }}>
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 text-center">
+          <p className="font-display text-sm sm:text-lg font-semibold tracking-[0.3em] uppercase mb-5 text-white">
             {brand.tagline}
           </p>
-          <p className="text-[#777] text-sm sm:text-base leading-relaxed max-w-2xl mx-auto mb-8">
+          <p className="text-white text-base sm:text-xl leading-relaxed max-w-3xl mx-auto mb-8 sm:mb-10">
             {brand.description}
           </p>
-          <div className="flex gap-3 flex-wrap justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-center max-w-xl mx-auto">
             <a
               href="#contacto"
-              className="font-display text-sm font-black tracking-widest uppercase px-8 py-3.5 text-white hover:opacity-85 transition-opacity"
-              style={{ background: primaryColor }}
+              className="font-display inline-flex items-center justify-center gap-4 text-lg font-bold tracking-wider uppercase px-7 py-4 min-h-16 rounded-xl bg-white text-[#111] shadow-sm hover:bg-[#f3f3f3] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white transition-colors"
             >
               Solicitar cotización
+              <svg aria-hidden="true" className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12h16m-6-6 6 6-6 6" /></svg>
             </a>
             {contact.data?.whatsapp && <a
               href={whatsappHref(contact.data.whatsapp, `Hola, me interesa un modelo de ${brand.name}`)}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-display text-sm font-black tracking-widest uppercase px-8 py-3.5 border-2 text-[#111] hover:bg-[#111] hover:text-white transition-all"
-              style={{ borderColor: '#111' }}
+              className="font-display inline-flex items-center justify-center gap-3 text-lg font-bold tracking-wider uppercase px-8 py-4 min-h-16 rounded-xl bg-[#25D366] text-[#082b18] shadow-sm hover:bg-[#1fbd5b] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white transition-colors"
             >
+              <svg aria-hidden="true" className="w-8 h-8 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.9 11.9 0 0 0 12.05 0C5.47 0 .11 5.35.1 11.93c0 2.1.55 4.15 1.6 5.96L0 24l6.27-1.64a11.94 11.94 0 0 0 5.77 1.47h.01c6.58 0 11.94-5.35 11.95-11.93a11.87 11.87 0 0 0-3.48-8.42Zm-8.47 18.34a9.9 9.9 0 0 1-5.05-1.38l-.36-.21-3.72.97.99-3.62-.24-.37a9.87 9.87 0 0 1-1.52-5.28c0-5.47 4.45-9.92 9.93-9.92a9.85 9.85 0 0 1 7.02 2.91 9.85 9.85 0 0 1 2.9 7.02c0 5.47-4.45 9.92-9.95 9.92Zm5.45-7.43c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.8-1.49-1.79-1.66-2.09-.18-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.09 4.49.71.31 1.27.49 1.7.63.72.23 1.37.2 1.89.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35Z" /></svg>
               WhatsApp
             </a>}
           </div>
