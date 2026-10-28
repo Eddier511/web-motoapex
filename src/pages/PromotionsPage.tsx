@@ -27,7 +27,7 @@ export default function PromotionsPage() {
     <div id="ofertas" className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 scroll-mt-20"><p className="font-display text-xs tracking-[0.3em] uppercase text-[#999] mb-2">Elige tu próxima aventura</p><h2 className="font-display text-3xl sm:text-4xl font-black uppercase mb-8">Ofertas vigentes</h2>
       {(catalog.loading || catalog.error) && <CatalogStatus />}
       <ResourceStatus resource={resource} label="promociones" empty={!resource.data?.length} emptyMessage="No hay promociones publicadas en este momento." />
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">{resource.data?.map(p => <PromotionCard key={p.id} promotion={p} />)}</div>
+      <div className="grid auto-rows-fr sm:grid-cols-2 lg:grid-cols-3 gap-6">{resource.data?.map(p => <PromotionCard key={p.id} promotion={p} />)}</div>
     </div>
   </main>
 }
@@ -38,7 +38,7 @@ export function PromotionDetailPage() {
   return <main className="pt-24 pb-16 min-h-screen"><Seo title={resource.data ? `${resource.data.title} | MotoApex` : 'Promoción | MotoApex'} />
     {resource.loading && !catalog.loading && <LoadingOverlay />}
     <div className="max-w-7xl mx-auto px-4 sm:px-6"><ResourceStatus resource={resource} label="promoción" />
-      {resource.data && <><h1 className="font-display text-4xl font-black uppercase mb-8">{resource.data.title}</h1><p className="text-[#888] mb-8">{resource.data.description}</p><div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"><PromotionCard promotion={resource.data} detail /></div></>}
+      {resource.data && <><h1 className="font-display text-4xl font-black uppercase mb-8">{resource.data.title}</h1><p className="text-[#888] mb-8">{resource.data.description}</p><div className="grid auto-rows-fr sm:grid-cols-2 lg:grid-cols-3 gap-6"><PromotionCard promotion={resource.data} detail /></div></>}
     </div>
   </main>
 }

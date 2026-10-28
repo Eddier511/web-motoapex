@@ -48,7 +48,7 @@ export default function HomePage() {
           <Link to="/promociones" className="font-display text-xs font-black tracking-widest uppercase text-[#bbb] hover:text-[#111]">Ver todas →</Link>
         </div>
         <ResourceStatus resource={promotions} label="promociones" />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">{homePromotions.map(o => <PromotionCard key={`${o.promotion.id}-${o.relation.id}`} promotion={o.promotion} motorcycleId={o.relation.motorcycleId} />)}</div>
+        <div className="grid auto-rows-fr sm:grid-cols-2 lg:grid-cols-4 gap-5">{homePromotions.map(o => <PromotionCard key={`${o.promotion.id}-${o.relation.id}`} promotion={o.promotion} motorcycleId={o.relation.motorcycleId} />)}</div>
       </div>
     </section>}
     <FeaturedSection motorcycles={motorcycles.filter(m => m.isFeatured)} />

@@ -39,7 +39,7 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false, p
 
   return (
     <div
-      className="group bg-white border border-[#e6e6e6] overflow-hidden cursor-pointer flex flex-col transition-shadow duration-200 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4"
+      className="group bg-white border border-[#e6e6e6] overflow-hidden cursor-pointer flex flex-col flex-1 transition-shadow duration-200 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4"
       onClick={openModel}
       role="button"
       tabIndex={0}
@@ -52,7 +52,7 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false, p
       <div className="h-1 shrink-0" style={{ background: brandColor }} />
 
       {/* Keep every part of the supplied photo visible, including embedded brand artwork. */}
-      <div className={`relative bg-[#f3f3f3] ${compact ? 'aspect-[16/9]' : 'aspect-[16/10]'}`}>
+      <div className={`relative shrink-0 bg-[#f3f3f3] ${compact ? 'aspect-[16/9]' : 'aspect-[16/10]'}`}>
         {coverImage ? (
           <img
             src={coverImage.url}
@@ -70,12 +70,12 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false, p
         </div>
 
         <div className="flex-1">
-          <div className="font-display text-2xl sm:text-[28px] font-black uppercase text-[#111] leading-tight mb-3">
+          <div className="font-display text-2xl sm:text-[28px] font-black uppercase text-[#111] leading-tight min-h-[2.5em] mb-3">
             <h3 className="inline">{motorcycle.model}</h3>
             {!titleHasYear && <span> {motorcycle.year}</span>}
           </div>
           <p className="text-[10px] font-bold tracking-[0.15em] uppercase mb-3" style={{ color: brandColor }}>{motorcycle.brandName}</p>
-          {promotionText && <p className="font-display text-base font-black uppercase text-[#111] mb-2">{promotionText.title}</p>}
+          {promotionText && <p className="font-display text-base font-black uppercase text-[#111] leading-normal min-h-[3em] line-clamp-2 mb-2" title={promotionText.title}>{promotionText.title}</p>}
           {!compact && <p className="text-[#888] text-sm leading-relaxed line-clamp-3 min-h-[4.5em]">{promotionText?.description || motorcycle.shortDescription || motorcycle.description || motorcycle.tagline}</p>}
         </div>
 
@@ -98,14 +98,14 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false, p
           </div>
         )}
 
-        <div className="flex items-end justify-between gap-3 flex-wrap border-t border-[#ededed] mt-6 pt-5">
-          <div>
+        <div className="flex flex-col items-stretch gap-3 border-t border-[#ededed] mt-6 pt-5">
+          <div className="min-h-[6.5rem]">
             <p className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#aaa] mb-1">Precio</p>
             {offer ? <><PromotionPrices relation={offer.relation} showPrice={motorcycle.showPrice} />{(!motorcycle.showPrice || !offer.relation.motorcycle.showPrice || (offer.relation.originalPrice === undefined && offer.relation.promoPrice === undefined)) && <p className="font-display text-sm text-[#888]">Precio no publicado</p>}{endsOn && <p className="text-xs text-[#777] mt-2">Hasta el {endsOn}</p>}</> : price !== undefined ? <p className="font-display text-3xl font-black text-[#111] leading-none">
               {cardPrice(price, motorcycle.currency)}<span className="text-[10px] text-[#aaa] font-bold ml-1.5">{motorcycle.currency}</span>
             </p> : <p className="font-display text-sm font-bold text-[#888]">Precio no publicado</p>}
           </div>
-          <span className="font-display text-xs font-black tracking-[0.15em] uppercase py-1 break-words group-hover:underline underline-offset-4" style={{ color: brandColor }}>{promotionText?.buttonLabel || 'Ver modelo'} →</span>
+          <span className="font-display text-xs font-black tracking-[0.15em] uppercase py-1 min-h-[2.5em] flex items-end justify-end text-right break-words group-hover:underline underline-offset-4" style={{ color: brandColor }}>{promotionText?.buttonLabel || 'Ver modelo'} →</span>
         </div>
       </div>
     </div>
