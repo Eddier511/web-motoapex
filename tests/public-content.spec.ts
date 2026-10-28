@@ -380,3 +380,90 @@ test('a campaign published after the tab opened becomes visible after refresh', 
   await expect(card).toContainText('$9,000 USD')
   expect(reads).toBe(2)
 })
+for (const width of [1280, 390]) {
+  for (const dates of [
+    { name: 'no dates', startsAt: null, endsAt: null },
+    { name: 'start only', startsAt: '2026-10-01T00:00:00Z', endsAt: null },
+    { name: 'end only', startsAt: null, endsAt: '2026-12-01T00:00:00Z' },
+    { name: 'both dates', startsAt: '2026-10-01T00:00:00Z', endsAt: '2026-12-01T00:00:00Z' },
+  ]) {
+    test(`optional promotion dates: ${dates.name}, ${width}px`, async ({ page }) => {
+      await page.clock.install({ time: new Date('2026-10-28T12:00:00Z') })
+      await page.setViewportSize({ width, height: 900 })
+      const p = { ...promotion, startsAt: dates.startsAt, endsAt: dates.endsAt }
+      const network = await contentRoutes(page, { promotions: [p], 'promotions/oferta-publica': p })
+      const checkExpiry = async (node: ReturnType<Page['locator']>) => {
+        if (dates.endsAt) await expect(node).toContainText('Hasta el 30/11/2026')
+        else await expect(node).not.toContainText('Hasta el')
+        await expect(node).not.toContainText('Invalid Date')
+      }
+      await page.goto('/promociones')
+      await expect(page.locator('[data-promotion-id="601"]')).toHaveCount(3)
+      const card = page.locator('[data-promotion-id="601"][data-motorcycle-id="301"]')
+      await checkExpiry(card)
+      await expect(card).toContainText('$9,000 USD')
+      await expect(page.locator('[data-motorcycle-id="302"] [data-promotion-prices]')).toHaveCount(0)
+      await expect(page.locator('[data-motorcycle-id="303"]')).toContainText('₡1,800,000 CRC')
+      await card.getByRole('button', { name: /Ver catálogo/ }).click()
+      const dialog = page.getByRole('dialog')
+      await checkExpiry(dialog)
+      await dialog.getByRole('button', { name: 'Color Azul', exact: true }).click()
+      await expect(dialog.locator('img').first()).toHaveAttribute('src', /301-1.png/)
+      await page.keyboard.press('Escape')
+      await card.getByRole('link', { name: 'Ver detalle', exact: true }).click()
+      await checkExpiry(page.locator('main'))
+      await page.goto('/motocicletas?model=modelo-301')
+      await expect(dialog).toContainText('$9,000 USD')
+      await checkExpiry(dialog)
+      await page.keyboard.press('Escape')
+      await page.goto('/')
+      await expect(page.locator('[data-promotion-id="601"]')).toHaveCount(3)
+      await checkExpiry(page.locator('[data-promotion-id="601"]').first())
+      expect(network.leads()).toBe(0)
+    })
+  }
+}
+
+test('general promotion with no dates has no expiry label', async ({ page }) => {
+  await contentRoutes(page, { promotions: [{ ...promotion, startsAt: null, endsAt: null, brand: null, motorcycles: [] }] })
+  await page.goto('/promociones')
+  const card = page.locator('[data-promotion-id="601"]')
+  await expect(card).toBeVisible()
+  await expect(card).not.toContainText('Hasta el')
+  await expect(card).not.toContainText('Invalid Date')
+})
+
+test('end-only promotion includes its exact endpoint and expires one millisecond later', async ({ page }) => {
+  const start = new Date('2026-10-28T12:00:00Z')
+  await page.clock.install({ time: start })
+  await page.clock.pauseAt(start)
+  await contentRoutes(page, { promotions: [{ ...promotion, startsAt: null, endsAt: '2026-10-28T12:01:00Z' }] })
+  await page.goto('/promociones')
+  await expect(page.locator('[data-promotion-id="601"]')).toHaveCount(3)
+  await page.clock.runFor(60000)
+  await expect(page.locator('[data-promotion-id="601"]')).toHaveCount(3)
+  await page.clock.runFor(1)
+  await expect(page.locator('[data-promotion-id="601"]')).toHaveCount(0)
+})
+
+test('start-only promotion begins at its inclusive boundary without an expiry', async ({ page }) => {
+  const start = new Date('2026-10-28T12:00:00Z')
+  await page.clock.install({ time: start })
+  await page.clock.pauseAt(start)
+  await contentRoutes(page, { promotions: [{ ...promotion, startsAt: '2026-10-28T12:01:00Z', endsAt: null }] })
+  await page.goto('/promociones')
+  await expect(page.getByRole('heading', { name: 'Ofertas vigentes', exact: true })).toBeVisible()
+  await expect(page.locator('[data-promotion-id="601"]')).toHaveCount(0)
+  await page.clock.runFor(60000)
+  await expect(page.locator('[data-promotion-id="601"]')).toHaveCount(3)
+  await expect(page.locator('main')).not.toContainText('Hasta el')
+})
+
+for (const invalid of ['', 'not-a-date', undefined]) {
+  test(`invalid or missing date is an error, not an unlimited promotion: ${String(invalid)}`, async ({ page }) => {
+    await contentRoutes(page, { promotions: [{ ...promotion, startsAt: invalid, endsAt: null }] })
+    await page.goto('/promociones')
+    await expect(page.locator('main')).toContainText('contenido no válido')
+    await expect(page.locator('[data-promotion-id]')).toHaveCount(0)
+  })
+}

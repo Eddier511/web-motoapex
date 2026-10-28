@@ -82,8 +82,8 @@ export interface Promotion {
   imageUrl: string
   brand: BrandSummary | null
   motorcycles: PromotionMotorcycle[]
-  startsAt: string
-  endsAt: string
+  startsAt: string | null
+  endsAt: string | null
   featured: boolean
   showOnHome: boolean
   order: number

@@ -28,7 +28,8 @@ export default function MotorcycleModal({ motorcycle: initialMotorcycle, promoti
   const { byId } = useOffers()
   const promotionContext = explicitPromotion ?? byId.get(motorcycle.id)
   const quoteAllowed = motorcycle.allowQuote && (!promotionContext || promotionContext.relation.motorcycle.allowQuote)
-  const promotionActive = usePromotionActive(promotionContext?.promotion ?? { startsAt: '1970-01-01T00:00:00Z', endsAt: '9999-01-01T00:00:00Z' })
+  const promotionActive = usePromotionActive(promotionContext?.promotion ?? { startsAt: null, endsAt: null })
+  const endsOn = promotionContext ? promotionDate(promotionContext.promotion.endsAt) : undefined
   const contact = useContact()
   const { brandColor, colorOptions, specs } = motorcycle
   const [activeColorId, setActiveColorId] = useState(initialMotorcycle.colorOptions[0]?.id ?? '')
@@ -159,7 +160,7 @@ export default function MotorcycleModal({ motorcycle: initialMotorcycle, promoti
                     {promotionActive ? <>
                       <PromotionPrices relation={promotionContext.relation} showPrice={motorcycle.showPrice} />
                       {(!motorcycle.showPrice || !promotionContext.relation.motorcycle.showPrice || (promotionContext.relation.originalPrice === undefined && promotionContext.relation.promoPrice === undefined)) && <p className="font-display text-xl text-[#888]">Precio no publicado</p>}
-                      <p className="mt-2 text-sm text-[#666]">Hasta el {promotionDate(promotionContext.promotion.endsAt)}</p>
+                      {endsOn && <p className="mt-2 text-sm text-[#666]">Hasta el {endsOn}</p>}
                     </> : <p role="status">Esta promoción ya no está vigente.</p>}
                   </div>
                 ) : visiblePrice(motorcycle) !== undefined ? (

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Promotion, PromotionMotorcycle } from '../types'
+import { promotionBoundaries, promotionIsActive } from '../api/promotionDates'
+export { promotionDate } from '../api/promotionDates'
 
 export interface PromotionContext { promotion: Promotion; relation: PromotionMotorcycle }
 export function usePromotionActive(p: Pick<Promotion, 'startsAt' | 'endsAt'>) {
@@ -7,15 +9,14 @@ export function usePromotionActive(p: Pick<Promotion, 'startsAt' | 'endsAt'>) {
   useEffect(() => { setNow(Date.now()) }, [p.startsAt, p.endsAt])
   useEffect(() => {
     const update = () => setNow(Date.now())
-    const boundary = Date.now() < Date.parse(p.startsAt) ? Date.parse(p.startsAt) : Date.parse(p.endsAt) + 1
-    const timer = boundary > Date.now() ? window.setTimeout(update, Math.max(1, Math.min(2147483647, boundary - Date.now()))) : undefined
+    const boundaries = promotionBoundaries(p).filter(t => t > Date.now())
+    const timer = boundaries.length ? window.setTimeout(update, Math.max(1, Math.min(2147483647, Math.min(...boundaries) - Date.now()))) : undefined
     window.addEventListener('focus', update)
     document.addEventListener('visibilitychange', update)
     return () => { clearTimeout(timer); window.removeEventListener('focus', update); document.removeEventListener('visibilitychange', update) }
   }, [p.startsAt, p.endsAt, now])
-  return now >= Date.parse(p.startsAt) && now <= Date.parse(p.endsAt)
+  return promotionIsActive(p, now)
 }
-export const promotionDate = (value: string) => new Intl.DateTimeFormat('es-CR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Costa_Rica' }).format(new Date(value))
 const price = (amount: number, currency: string) => `${currency === 'USD' ? '$' : '₡'}${amount.toLocaleString('en-US', { minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2 })} ${currency}`
 export default function PromotionPrices({ relation, showPrice, dark = false }: { relation: PromotionMotorcycle; showPrice: boolean; dark?: boolean }) {
   if (!showPrice || !relation.motorcycle.showPrice) return null

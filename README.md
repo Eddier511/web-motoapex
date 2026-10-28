@@ -49,7 +49,7 @@ pnpm exec playwright install chromium
 pnpm test
 ```
 
-En Windows: `PLAYWRIGHT_CHANNEL=msedge`. Las respuestas de prueba viven exclusivamente en tests, fuera del bundle. Hay 41 pruebas de navegador aisladas, cuatro pruebas HTTP y dos pruebas reales opt-in de GET, sin leads: ejecutar `LIVE_PUBLIC_API=1 pnpm test tests/live-public-api.spec.ts` (en PowerShell configurar `$env:LIVE_PUBLIC_API='1'`). La web utiliza el puerto exclusivo 4175 en Playwright. CI verifica PRs, push a main y ejecuciones manuales; no despliega.
+En Windows: `PLAYWRIGHT_CHANNEL=msedge`. Las respuestas de prueba viven exclusivamente en tests, fuera del bundle. Hay 55 pruebas de navegador aisladas, cuatro pruebas HTTP y dos pruebas reales opt-in de GET, sin leads: ejecutar `LIVE_PUBLIC_API=1 pnpm test tests/live-public-api.spec.ts` (en PowerShell configurar `$env:LIVE_PUBLIC_API='1'`). La web utiliza el puerto exclusivo 4175 en Playwright. CI verifica PRs, push a main y ejecuciones manuales; no despliega.
 
 Resultados reales, CORS, datos faltantes y límites de verificación están en [docs/public-content-verification.md](docs/public-content-verification.md).
 
@@ -80,3 +80,13 @@ Actualizar también el valor por defecto en src/api/client.ts y recompilar. La U
 - El cliente combina cancelación del consumidor con timeout de 15 s; una señal ya cancelada no genera fetch. Las solicitudes compartidas se cancelan cuando pierden su último consumidor. Ningún POST se reintenta automáticamente.
 - CI comprueba el runtime, audit, pruebas HTTP, tipos, compilación y navegador. Las pruebas de producción siguen siendo opt-in, de solo lectura y sin leads reales.
 - Los encabezados del alojamiento y los campos públicos de la API se verifican en sus proyectos correspondientes; no se han alterado desde esta web.
+
+## Promociones con fechas opcionales (28/10/2026)
+
+Compatibilidad añadida con [API PR #6](https://github.com/Eddier511/api-motoapex/pull/6), revisión `3ed3ef2f4ed673ba6648a10fe88cc75334592cc0`, docs/contract.md y docs/promotions-optional-dates.md. No se asume que esa rama esté en main ni que la API o migración 007 estén instaladas en Hostinger.
+
+startsAt y endsAt son claves requeridas con valor string o null. Ambas null significan sin límite; inicio/null significa desde ese instante sin vencimiento; null/fin significa hasta ese instante; ambas fechas mantienen el rango inclusivo. Se conservan los controles de publicación y vigencia del servidor y la expiración local del contenido en caché. Sin un límite no se crea temporizador ni fecha sustitutiva.
+
+Las tarjetas de inicio/promociones/catálogo y sus popups solo muestran «Hasta el DD/MM/AAAA» cuando endsAt contiene una fecha válida, en America/Costa_Rica. Con null se elimina toda la leyenda, sin cambiar clases o diseño del resto de la ficha. No se llama Date sobre null ni se generan fechas o duraciones ficticias. Campos omitidos, vacíos o inválidos siguen produciendo error explícito.
+
+Se prueban las cuatro combinaciones en escritorio y móvil, detalle, inicio, catálogo, popup, colores, precios USD/CRC, precios ocultos y límites inclusivos. Los casos null usan respuestas aisladas de prueba; no crean campañas en producción ni ejecutan migraciones. El cambio web es compatible también con la API anterior que devuelve ambas fechas como cadenas.

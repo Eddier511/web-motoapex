@@ -22,7 +22,7 @@ export function safeDestination(v: unknown) {
 }
 const requiredUrl = (v: unknown, internal = false) => { const s = internal ? safeDestination(v) : safeHttps(v); if (!s) throw new Error('Enlace público no válido'); return s }
 const summary = (v: unknown): BrandSummary => { const r = record(v); return { id: id(r.id), name: text(r.name), slug: id(r.slug), primaryColor: color(r.primaryColor) } }
-const date = (v: unknown) => { const s = text(v); if (!s || !Number.isFinite(Date.parse(s))) throw new Error('Vigencia no válida'); return s }
+const date = (v: unknown): string | null => { if (v === null) return null; const s = text(v); if (!s || !Number.isFinite(Date.parse(s))) throw new Error('Vigencia no válida'); return s }
 
 export function parsePromotion(v: unknown): Promotion {
   const r = record(v)

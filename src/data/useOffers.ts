@@ -3,6 +3,7 @@ import { usePublicResource } from './PublicDataContext'
 import { useCatalog } from './CatalogContext'
 import { parsePromotions } from '../api/content'
 import type { PromotionContext } from '../components/PromotionPrices'
+import { promotionBoundaries, promotionIsActive } from '../api/promotionDates'
 
 export default function useOffers() {
   const resource = usePublicResource('promotions', parsePromotions)
@@ -11,7 +12,7 @@ export default function useOffers() {
   useEffect(() => { setNow(Date.now()) }, [resource.data])
   useEffect(() => {
     const update = () => setNow(Date.now())
-    const boundaries = resource.data?.flatMap(p => [Date.parse(p.startsAt), Date.parse(p.endsAt) + 1]).filter(t => t > Date.now()) || []
+    const boundaries = resource.data?.flatMap(promotionBoundaries).filter(t => t > Date.now()) || []
     const timer = boundaries.length ? setTimeout(update, Math.min(2147483647, Math.max(1, Math.min(...boundaries) - Date.now()))) : undefined
     window.addEventListener('focus', update)
     return () => { clearTimeout(timer); window.removeEventListener('focus', update) }
@@ -19,7 +20,7 @@ export default function useOffers() {
   const offers = useMemo(() => {
     const result: PromotionContext[] = []
     for (const promotion of resource.data || []) {
-      if (now < Date.parse(promotion.startsAt) || now > Date.parse(promotion.endsAt)) continue
+      if (!promotionIsActive(promotion, now)) continue
       for (const relation of promotion.motorcycles) {
         if (catalog.motorcycles.some(m => m.id === relation.motorcycleId && m.currency === relation.currency)) result.push({ promotion, relation })
       }

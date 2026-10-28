@@ -53,6 +53,19 @@ test('compiled web against installed API at the authorized origin, no API interc
   const published = await page.evaluate(async () => (await (await fetch('https://darksalmon-quetzal-730302.hostingersite.com/v1/public/promotions')).json()).data)
   if (!published.length) await expect(page.getByText('No hay promociones publicadas en este momento.')).toBeVisible()
   else {
+    const unlimited = published.find((p: { endsAt: string | null }) => p.endsAt === null)
+    if (unlimited) {
+      const unlimitedCard = page.locator(`[data-promotion-id="${unlimited.id}"]`).first()
+      await expect(unlimitedCard).toBeVisible()
+      await expect(unlimitedCard).not.toContainText('Hasta el')
+      await expect(unlimitedCard).not.toContainText('Invalid Date')
+      if (unlimited.motorcycles.length) {
+        await unlimitedCard.getByRole('button').first().click()
+        await expect(dialog).toBeVisible()
+        await expect(dialog).not.toContainText('Hasta el')
+        await page.keyboard.press('Escape')
+      }
+    }
     const promotion = published.find((p: { motorcycles: unknown[] }) => p.motorcycles.length)
     if (promotion) {
       const rel = promotion.motorcycles[0]

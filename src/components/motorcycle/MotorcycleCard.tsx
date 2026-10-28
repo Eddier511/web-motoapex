@@ -24,6 +24,7 @@ function cardPrice(amount: number, currency: string) {
 export default function MotorcycleCard({ motorcycle, onClick, compact = false, promotionContext, promotionText }: MotorcycleCardProps) {
   const { byId } = useOffers()
   const offer = promotionContext ?? byId.get(motorcycle.id)
+  const endsOn = offer ? promotionDate(offer.promotion.endsAt) : undefined
   const { brandColor, colorOptions } = motorcycle
   const [activeColorId, setActiveColorId] = useState(colorOptions[0]?.id ?? '')
   const activeColor = colorOptions.find(color => color.id === activeColorId) ?? colorOptions[0]
@@ -100,7 +101,7 @@ export default function MotorcycleCard({ motorcycle, onClick, compact = false, p
         <div className="flex items-end justify-between gap-3 flex-wrap border-t border-[#ededed] mt-6 pt-5">
           <div>
             <p className="text-[10px] font-bold tracking-[0.16em] uppercase text-[#aaa] mb-1">Precio</p>
-            {offer ? <><PromotionPrices relation={offer.relation} showPrice={motorcycle.showPrice} />{(!motorcycle.showPrice || !offer.relation.motorcycle.showPrice || (offer.relation.originalPrice === undefined && offer.relation.promoPrice === undefined)) && <p className="font-display text-sm text-[#888]">Precio no publicado</p>}<p className="text-xs text-[#777] mt-2">Hasta el {promotionDate(offer.promotion.endsAt)}</p></> : price !== undefined ? <p className="font-display text-3xl font-black text-[#111] leading-none">
+            {offer ? <><PromotionPrices relation={offer.relation} showPrice={motorcycle.showPrice} />{(!motorcycle.showPrice || !offer.relation.motorcycle.showPrice || (offer.relation.originalPrice === undefined && offer.relation.promoPrice === undefined)) && <p className="font-display text-sm text-[#888]">Precio no publicado</p>}{endsOn && <p className="text-xs text-[#777] mt-2">Hasta el {endsOn}</p>}</> : price !== undefined ? <p className="font-display text-3xl font-black text-[#111] leading-none">
               {cardPrice(price, motorcycle.currency)}<span className="text-[10px] text-[#aaa] font-bold ml-1.5">{motorcycle.currency}</span>
             </p> : <p className="font-display text-sm font-bold text-[#888]">Precio no publicado</p>}
           </div>
